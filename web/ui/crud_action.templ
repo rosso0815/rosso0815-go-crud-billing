@@ -1,0 +1,11 @@
+package ui
+
+templ CrudActionAdd(get_path string) {
+	<button
+		class="btn btn-primary"
+   		hx-get={ get_path }
+		hx-swap="innerHTML"
+		hx-target="#content"
+		hx-trigger="click"
+	><i class="bi-database-fill-add"></i></button>
+}

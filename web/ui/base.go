@@ -66,8 +66,6 @@ func (b *Base) Update(w http.ResponseWriter, r *http.Request) {
 		scheme = "https"
 	}
 	b.FullUrlPath = fmt.Sprintf("%v://%v%v", scheme, r.Host, r.URL.String())
-	// b.MessageType = Normal
-	// b.MessageText = ""
 }
 
 // --- EOF

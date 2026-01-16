@@ -6,3 +6,11 @@ db/pg_data/
 bin/
 web/*_templ.go
 web/ui/*_templ.go
+static/css/bootstrap-icons.css
+static/css/bootstrap.css
+static/css/fonts/
+static/js/bootstrap.bundle.js
+static/js/form.js
+static/js/form-json.js
+static/js/htmx.js
+static/js/json-enc.js

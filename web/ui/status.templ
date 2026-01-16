@@ -1,0 +1,36 @@
+package ui
+
+templ Status(user string) {
+    <form class="d-flex flex-row-reverse" role="search">
+	    <ul class="navbar-nav me-auto mb-2 mb-md-0">
+            <li class="nav-item"><a class="nav-link" href={ templ.URL("/goapp//ui/user") }>{ user }</a></li>
+		</ul>
+    </form>
+}
+
+templ component(testID string) {
+  <p data-testid={ testID }>Text</p>
+}
+
+templ Wrapper(){
+    <div>
+        <h3>WRAPPER</h3>
+        <div>
+            @component("testid-123")
+        </div>
+    </div>
+}
+
+templ Hello(name string){
+    <div>Hello { name }</div>
+}
+
+
+templ HelloAgain(c templ.Component){
+    <div>
+        <h1>Hello Again</h1>
+        <div>@c</div>
+    </div>
+}
+
+// --- EOF

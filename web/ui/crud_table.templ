@@ -1,0 +1,62 @@
+package ui
+
+import (
+	"fmt"
+
+	config "github.com/rosso0815/rosso0815-go-crud-billing/config"
+)
+
+// needs: entry to show , entry for sort, actual sort entry
+templ CrudHeaderSort(name string,cfg *config.Config) {
+	<th
+		scope="col"
+		hx-get={ fmt.Sprintf("%s/ui/customer?%s", 
+								cfg.WebPrefix,
+								"sortname=id?sortorder=asc" ) }
+		hx-target="#content"
+		hx-push-url="true"
+		hx-params="*"
+		hx-include="[name='status']"
+	> { name } </th>
+}
+
+// FIXME add message , check length or nil
+templ CrudTable(c CrudList,cfg *config.Config) {
+	@CrudBase(&c.Base,cfg) {
+		<table class="table table-bordered table-hover">
+			<thead>
+				<tr>
+					for _, item := range c.Header {
+						@item
+					}
+				</tr>
+			</thead>
+			<tbody id="tbody">
+				for _, item := range c.Items {
+					@item
+				}
+			</tbody>
+		</table>
+		<div class="row">
+			<div class="col">
+				<nav>
+					<ul class="pagination">
+						for i := range ( c.Count / c.PageSize ) + 1 {
+							<li class="page-item">
+								<a class="page-link" href={ templ.URL(fmt.Sprintf("?pagecount=%d&pagesize=%d", i, c.PageSize)) }>{ fmt.Sprintf("%d",i) }</a>
+							</li>
+						}
+					</ul>
+				</nav>
+			</div>
+			<div class="col"></div>
+			<div class="col">
+				<span class="ms-1">
+					count { fmt.Sprintf("%d",c.Count) }
+				</span>
+			</div>
+		</div>
+	}
+}
+
+// --- EOF ---

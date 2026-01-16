@@ -1,0 +1,255 @@
+package web
+
+import (
+	"fmt"
+	"time"
+
+	config "github.com/rosso0815/rosso0815-go-crud-billing/config"
+	store "github.com/rosso0815/rosso0815-go-crud-billing/services"
+	ui "github.com/rosso0815/rosso0815-go-crud-billing/web/ui"
+)
+
+templ invoiceLineDelete(id int) {
+	<tr id={ fmt.Sprintf("crudid_%d", id) }>
+		<td class="col-1"></td>
+		<td class="col-2"></td>
+		<td class="col-2"></td>
+		<td class="col-2"></td>
+		<td class="col-3"></td>
+		<td class="col-2">Invoice deleted { fmt.Sprintf("%d",id) }</td>
+	</tr>
+	<div id="message" hx-swap-oob="true">
+		<div class="alert alert-primary" role="alert">Customer deleted { fmt.Sprintf("%d",id) }</div>
+	</div>
+}
+
+templ invoiceCrudLine(invoice store.Invoice, cfg *config.Config) {
+	<tr id={ fmt.Sprintf("crudid_%d", uint64(invoice.InvoiceId)) }>
+		<td class="col-1">{ fmt.Sprintf("%d",uint64( invoice.InvoiceId )) }</td>
+		<td class="col-1">{ invoice.InvoiceYear }</td>
+		<td class="col-1">{ invoice.InvoiceMonth }</td>
+		<td class="col-1">{ invoice.TotalHours }</td>
+		<td class="col-1">{ fmt.Sprintf("%d",invoice.Customer.CustomerID ) }</td>
+		<td class="col-1">{ invoice.Customer.FirstName }</td>
+		<td class="col-1">{ invoice.Customer.LastName }</td>
+		<td class="col-2">
+			<button
+				class="btn btn-primary"
+				hx-swap="innerHTML"
+				hx-target="#content"
+				hx-trigger="click"
+				hx-get={ fmt.Sprintf("invoice/formedit/%d", uint(invoice.InvoiceId)) }
+			>
+				<i class="bi-pen"></i>
+			</button>
+			<button
+				class="btn btn-primary"
+				onclick={ templ.JSFuncCall("window.open",
+					fmt.Sprintf("%s/ui/invoice/print/%d",
+						cfg.WebPrefix,
+						uint(invoice.InvoiceId)),"_blank" ) }
+			>
+				<i class="bi-printer-fill"></i>
+			</button>
+			@invoiceButtonPayed(invoice)
+			<button
+				class="btn btn-primary"
+				hx-swap="outerHTML"
+				hx-target="closest tr"
+				hx-confirm="Are you sure you wish to delete this invoice ?"
+				hx-delete={ fmt.Sprintf("invoice/%d", uint(invoice.InvoiceId)) }
+			><i class="bi-database-dash"></i></button>
+		</td>
+	</tr>
+}
+
+templ invoiceButtonPayed(invoice store.Invoice) {
+	if invoice.BillPayed == false {
+		<button
+			class="btn btn-danger"
+			hx-swap="outerHTML"
+			hx-target="closest button"
+			hx-post={ fmt.Sprintf("invoice/payed/%d", uint(invoice.InvoiceId)) }
+		>
+			<i class="bi-question"></i>
+		</button>
+	} else {
+		<button
+			class="btn btn-success"
+			hx-swap="outerHTML"
+			hx-target="closest button"
+			hx-post={ fmt.Sprintf("invoice/payed/%d", uint(invoice.InvoiceId)) }
+		>
+			<i class="bi-exclamation"></i>
+		</button>
+	}
+}
+
+templ invoiceFormAsk(cfg *config.Config, base ui.Base, title string, customers []store.Customer) {
+	@ui.CrudBase(&base, cfg) {
+		<div id="form_invoice">
+			<h5>{ title }</h5>
+			<form>
+				<label>Choose a customer:</label>
+				<select name="customer">
+					for _,customer := range customers {
+						<option value={ customer.CustomerID }>
+							{ customer.FirstName } { customer.LastName }
+						</option>
+					}
+				</select>
+				<label>Choose a Year:</label>
+				<input type="number" min="2000" max="2099" step="1" name="year" value="2025"/>
+				<label>Choose a Month:</label>
+				<select
+					name="month"
+					hx-get={ fmt.Sprintf("%s/ui/invoice/formadd", cfg.WebPrefix) }
+					hx-target="#form_invoice"
+					hx-include="closest form"
+					hx-ext="json-enc"
+				>
+					<option value="0">pls define</option>
+					for i := time.January; i <= time.December; i++ {
+						<option value={ int(i) }>{ i }</option>
+					}
+				</select>
+			</form>
+		</div>
+	}
+}
+
+templ invoiceForm(cfg *config.Config, base ui.Base, invoice *store.Invoice) {
+	@ui.CrudBase(&base, cfg) {
+		<div id="form_invoice">
+			<form>
+				<input type="hidden" name="invoiceid" value={ invoice.InvoiceId }/>
+				<input type="hidden" name="customer.customerid" value={ invoice.Customer.CustomerID }/>
+				<input type="hidden" name="invoicemonth" value={ invoice.InvoiceMonth }/>
+				<input type="hidden" name="invoiceyear" value={ invoice.InvoiceYear }/>
+				<label>
+					<h2>
+						Invoice for { invoice.Customer.FirstName } { invoice.Customer.LastName } - { time.Month(invoice.InvoiceMonth) } { invoice.InvoiceYear }
+					</h2>
+				</label>
+				<br/>
+				<table class="table table-bordered">
+					for _, day := range invoice.InvoiceItems {
+						if day.Weekday.Weekday() == time.Saturday || day.Weekday.Weekday() == time.Sunday {
+							<tr class="table-active">
+								<td>{ day.Weekday.Weekday() } { day.Weekday.Day() }.{ day.Weekday.Month() }</td>
+								<td>
+									<input type="hidden" name={ fmt.Sprintf("invoiceitems.%d.workdaynumber", day.WorkDayNumber) } value={ fmt.Sprintf("%d", day.WorkDayNumber) }/>
+									<input type="hidden" name={ fmt.Sprintf("invoiceitems.%d.workhours", day.WorkDayNumber) } value="0.0"/>
+								</td>
+							</tr>
+						} else {
+							<tr class="table-light">
+								<td>{ fmt.Sprintf("%d.%s.%d",day.Weekday.Day(),day.Weekday.Month(),day.Weekday.Year()) } </td>
+								<td>
+									<label>Stunden</label>
+									<input type="hidden" name={ fmt.Sprintf("invoiceitems.%d.workdaynumber", day.WorkDayNumber) } value={ fmt.Sprintf("%d", day.WorkDayNumber) }/>
+									<input
+										type="number"
+										name={ fmt.Sprintf("invoiceitems.%d.workhours", day.WorkDayNumber) }
+										day={ fmt.Sprintf("%d", day.WorkDayNumber) }
+										min="0"
+										max="8"
+										step="0.5"
+										value={ fmt.Sprintf("%.1f", day.WorkHours) }
+									/>
+								</td>
+							</tr>
+						}
+					}
+					<tr><td>&nbsp;</td></tr>
+					<tr>
+						<td>Additional Billing</td>
+						<td>
+							<input
+								type="number"
+								name="billingadd"
+								min="0"
+								max="100"
+								step="0.5"
+								value={ fmt.Sprintf("%.1f", invoice.BillingAdd) }
+							/>
+						</td>
+					</tr>
+					<tr>
+						<td>Remark</td>
+						<td>
+							<input
+								type="text"
+								name="remark"
+								value={ fmt.Sprintf("%s", invoice.Remark) }
+							/>
+						</td>
+					</tr>
+					<tr><td>&nbsp;</td></tr>
+					<tr>
+						<td>Salary per hour</td>
+						<td>
+							<input
+								type="number"
+								name="salaryhour"
+								min="0"
+								max="8"
+								step="0.1"
+								value={ fmt.Sprintf("%.1f", invoice.SalaryHour) }
+							/>
+						</td>
+					</tr>
+					<tr>
+						<td>AHV</td>
+						<td>
+							<input
+								type="number"
+								name="ahv"
+								min="0"
+								max="8"
+								step="0.1"
+								value={ fmt.Sprintf("%.1f", invoice.AHV) }
+							/>
+						</td>
+					</tr>
+					<tr>
+						<td>ALV</td>
+						<td>
+							<input
+								type="number"
+								name="alv"
+								min="0"
+								max="8"
+								step="0.1"
+								value={ fmt.Sprintf("%.1f", invoice.ALV) }
+							/>
+						</td>
+					</tr>
+					<tr>
+						<td>Quellensteuer</td>
+						<td>
+							<input
+								type="number"
+								name="quellensteuer"
+								min="0"
+								max="8"
+								step="0.1"
+								value={ fmt.Sprintf("%.1f", invoice.Quellensteuer) }
+							/>
+						</td>
+					</tr>
+				</table>
+				<button
+					class="btn btn-success"
+					hx-swap="innerHTML"
+					hx-target="#content"
+					hx-post={ fmt.Sprintf("%s/ui/invoice/formpost", cfg.WebPrefix) }
+					hx-include="closest form"
+					hx-ext="form-json"
+				>Submit</button>
+			</form>
+		</div>
+	}
+}
+
+// --- EOF ---
