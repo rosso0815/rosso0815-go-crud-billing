@@ -1,6 +1,6 @@
 module github.com/rosso0815/rosso0815-go-crud-billing
 
-go 1.25.0
+go 1.25
 
 require (
 	github.com/a-h/templ v0.3.977
