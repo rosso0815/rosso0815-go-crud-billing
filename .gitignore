@@ -1,3 +1,5 @@
 .vscode/
 .env-secret
 tmp/
+db/generated/
+db/pg_data/
