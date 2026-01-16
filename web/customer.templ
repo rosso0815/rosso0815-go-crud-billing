@@ -1,0 +1,167 @@
+package web
+
+import (
+	"fmt"
+
+	config "github.com/rosso0815/rosso0815-go-crud-billing/config"
+	services "github.com/rosso0815/rosso0815-go-crud-billing/services"
+	ui "github.com/rosso0815/rosso0815-go-crud-billing/web/ui"
+)
+
+templ customerLine(item services.Customer, cfg *config.Config) {
+	<tr id={ fmt.Sprintf("crud_customer_id_%d", item.CustomerID) }>
+		<td class="col-1">{ fmt.Sprintf("%d",item.CustomerID) }</td>
+		<td class="col-2">{ item.FirstName }</td>
+		<td class="col-2">{ item.LastName }</td>
+		<td class="col-2">{ item.Street }</td>
+		<td class="col-2">{ item.Town }</td>
+		<td class="col-2">{ item.Remark }</td>
+		<td class="col-1">
+			<button
+				class="btn btn-primary"
+				hx-get={ fmt.Sprintf("%s/ui/customer/edit/%d",
+					cfg.WebPrefix,
+					item.CustomerID) }
+				hx-swap="innerHTML"
+				hx-target="#content"
+				hx-trigger="click"
+			><i class="bi-pen"></i></button>
+			<button
+				class="btn btn-danger"
+				hx-swap="innerHTML"
+				hx-target="closest tr"
+				hx-confirm="Are you sure you wish to delete this customer?"
+				hx-delete={ fmt.Sprintf("%s/ui/customer/%d",
+					cfg.WebPrefix,
+					item.CustomerID) }
+			><i class="bi-database-dash"></i></button>
+		</td>
+	</tr>
+}
+
+templ customer_crudLineNotDeleted(b ui.Base, item services.Customer) {
+	<tr id={ fmt.Sprintf("crud_customer_id_%d", item.CustomerID) }>
+		<td class="col-1">{ fmt.Sprintf("%d", item.CustomerID) }</td>
+		<td class="col-2">{ item.FirstName }</td>
+		<td class="col-2">{ item.LastName }</td>
+		<td class="col-2">{ item.Street }</td>
+		<td class="col-2">{ item.Town }</td>
+		<td class="col-2">{ item.Remark }</td>
+		<td class="col-1">
+			<button
+				class="btn btn-primary"
+				hx-get={ fmt.Sprintf("customer/edit/%d", item.CustomerID) }
+				hx-swap="innerHTML"
+				hx-target="#content"
+				hx-trigger="click"
+			><i class="bi-pen"></i></button>
+			<button
+				class="btn btn-danger"
+				hx-swap="innerHTML"
+				hx-target="closest tr"
+				hx-delete={ fmt.Sprintf("customer/%d", item.CustomerID) }
+			><i class="bi-database-dash"></i></button>
+		</td>
+	</tr>LE
+	<div id="message" hx-swap-oob="true">
+		<div class="alert alert-danger" role="alert">{ b.MessageText }</div>
+	</div>
+}
+
+templ customer_Form(b ui.Base, action ui.Action, title string, item services.Customer, cfg *config.Config) {
+	@ui.CrudBase(&b, cfg) {
+		<div class="container-md">
+			<h2>{ title } Customer</h2>
+			<form class="was-validated">
+				if action == ui.Edit {
+					<div class="mb-3">
+						<label for="CustomerID" class="form-label">CustomerID</label>
+						<input type="text" class="form-control" name="customerid" value={ item.CustomerID } readonly/>
+					</div>
+				}
+				<div class="mb-3">
+					<label for="first_name" class="form-label">First Name</label>
+					<input type="text" class="form-control" name="firstname" value={ item.FirstName } required/>
+				</div>
+				<div class="mb-3">
+					<label for="last_name" class="form-label">Last Name</label>
+					<input type="text" class="form-control" name="lastname" value={ item.LastName } required/>
+				</div>
+				<div class="mb-3">
+					<label for="street" class="form-label">Street</label>
+					<input type="text" class="form-control" name="street" value={ item.Street }/>
+				</div>
+				<div class="mb-3">
+					<label for="town" class="form-label">Town</label>
+					<input type="text" class="form-control" name="town" value={ item.Town }/>
+				</div>
+				<div class="mb-3">
+					<label for="remark" class="form-label">Remark</label>
+					<input type="text" class="form-control" name="remark" value={ item.Remark }/>
+				</div>
+				<div class="mb-3">
+					<label for="phone" class="form-label">Phone</label>
+					<input type="text" class="form-control" name="phone" value={ item.Phone }/>
+				</div>
+				<div class="mb-3">
+					<label for="email" class="form-label">Email</label>
+					<input type="email" class="form-control" name="email" value={ item.Email }/>
+				</div>
+				<div class="mb-3">
+					<label class="form-label">AHV</label>
+					<input class="form-control" name="ahv" value={ item.Ahv }/>
+				</div>
+				<div class="mb-3">
+					<label class="form-label">ALV</label>
+					<input class="form-control" name="alv" value={ item.Alv }/>
+				</div>
+				<div class="mb-3">
+					<label class="form-label">Quellensteuer</label>
+					<input class="form-control" name="quellensteuer" value={ item.Quellensteuer }/>
+				</div>
+				<div class="mb-3">
+					<label class="form-label">Agreed salray per hour</label>
+					<input class="form-control" name="salaryhour" value={ item.SalaryHour }/>
+				</div>
+				switch action {
+					case ui.Add:
+						<button
+							class="btn btn-success"
+							hx-post="customer"
+							hx-trigger="click"
+							hx-target="#content"
+							hx-swap="innerHTML"
+							hx-include="closest form"
+							hx-ext="json-enc"
+						>
+							Submit
+						</button>
+					case ui.Edit:
+						<button
+							class="btn btn-success"
+							hx-put={ fmt.Sprintf("customer/%d", item.CustomerID) }
+							hx-trigger="click"
+							hx-target="#content"
+							hx-swap="innerHTML"
+							hx-include="closest form"
+							hx-ext="json-enc"
+						>
+							Submit
+						</button>
+				}
+				<button
+					type="button"
+					class="btn btn-light"
+					hx-trigger="click"
+					hx-target="#content"
+					hx-get="customer"
+				>Cancel</button>
+			</form>
+		</div>
+	}
+	<div id="message" hx-swap-oob="#message">
+		if len(b.MessageText) > 0 {
+			<div class="alert alert-primary" role="alert">{ b.MessageText }</div>
+		}
+	</div>
+}

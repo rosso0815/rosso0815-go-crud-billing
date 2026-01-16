@@ -3,3 +3,6 @@
 tmp/
 db/generated/
 db/pg_data/
+bin/
+web/*_templ.go
+web/ui/*_templ.go
