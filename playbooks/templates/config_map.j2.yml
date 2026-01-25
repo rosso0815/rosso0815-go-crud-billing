@@ -6,3 +6,10 @@ metadata:
 data:
   user: "spooky-config-2"
   namespace: "{{ app_namespace }}"
+  pguser: "{{ pguser }}"
+  pgpassword: "{{ pgpassword }}"
+  pgname: "{{ pgname }}"
+  pghost: "{{ pghost }}"
+  pgport: "{{ pgport }}"
+  db_uri: "{{ db_uri }}"
+# --- EOF
