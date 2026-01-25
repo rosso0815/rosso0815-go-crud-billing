@@ -23,6 +23,8 @@ type Config struct {
 	PageCount     int    // `mapstructure:"page_count"`
 	SessionSecret string // `mapstructure:"session_secret"`
 
+	AuthEnabled string // `mapstructure:"auth_google_id"`
+
 	AuthGoogleID     string // `mapstructure:"auth_google_id"`
 	AuthGoogleSecret string // `mapstructure:"auth_google_secret"`
 
@@ -49,6 +51,9 @@ func New(e *embed.FS) *Config {
 
 	cfg.WebListener = os.Getenv("WEB_LISTENER")
 	fmt.Println("WEB_LISTENER: ", cfg.WebListener)
+
+	cfg.AuthEnabled = os.Getenv("AUTH_ENABLED")
+	fmt.Println("AUTH_ENABLED: ", cfg.AuthEnabled)
 
 	cfg.AuthGoogleID = os.Getenv("AUTH_GOOGLE_ID")
 	fmt.Println("AUTH_GOOGLE_ID: ", cfg.AuthGoogleID)

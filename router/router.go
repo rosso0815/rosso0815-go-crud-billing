@@ -81,8 +81,11 @@ func (rt *Router) SetupRoutes() {
 	RegisterRoute("GET "+rt.cfg.WebPrefix+"/status", rt.StatusHandler)
 	RegisterRoute("GET "+rt.cfg.WebPrefix+"", rt.redirectToCustomer)
 	for _, r := range routes {
-		// rt.mux.Handle(r.path, rt.sessionManager.LoadAndSave(logger(r.handler)))
-		rt.mux.Handle(r.path, rt.sessionManager.LoadAndSave(rt.AuthLoginHandler(logger(r.handler), rt.cfg)))
+		if rt.cfg.AuthEnabled == "true" {
+			rt.mux.Handle(r.path, rt.sessionManager.LoadAndSave(rt.AuthLoginHandler(logger(r.handler), rt.cfg)))
+		} else {
+			rt.mux.Handle(r.path, rt.sessionManager.LoadAndSave(logger(r.handler)))
+		}
 	}
 }
 

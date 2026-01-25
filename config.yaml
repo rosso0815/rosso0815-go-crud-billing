@@ -2,10 +2,11 @@
 
 db_uri: 'pls define'
 
-web_listener: 'localhost:3000'
+web_listener: '0.0.0.0:3000'
 
 web_prefix: '/goapp'
 
+auth_enabled: 'false'
 auth_google_id: 'pls_define'
 auth_google_secret: 'pls define'
 auth_google_callback: 'pls define'

@@ -27,6 +27,11 @@ spec:
                 configMapKeyRef:
                   name: goapp
                   key: user
+            - name: DB_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: goapp
+                  key: db_uri
           ports:
             - containerPort: 8080
       imagePullSecrets:

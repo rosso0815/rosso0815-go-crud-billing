@@ -32,6 +32,6 @@ git_token: "{{ lookup( 'env' , 'GIT_TOKEN' ) }}"
 
 git_auth: "{{ ( git_username + ':' + git_token ) | b64encode }}"
 
-goapp_path: gitea.localnet/gitea_admin/rosso0815-hetzner:1.0.0-04
+goapp_path: gitea.localnet/gitea_admin/rosso0815-hetzner:1.0.0-01
 
 # --- EOF
