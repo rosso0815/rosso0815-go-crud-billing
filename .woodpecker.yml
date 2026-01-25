@@ -1,0 +1,108 @@
+---
+
+# lets do cicd with woodpecker
+
+clone:
+  git:
+    image: woodpeckerci/plugin-git
+    settings:
+      depth: 50
+      lfs: false
+      skip-verify: true
+
+steps:
+
+  - name: basic checks
+    when:
+      - event: tag
+      - event: push
+      - event: manual
+    image: bash
+    commands:
+      - echo hi
+      - printenv
+      - ls -l
+      - ping -c 3 192.168.1.20
+
+  - name: update npm
+    image: node:20.19.6-bookworm
+    when:
+      - event: tag
+      - event: push
+      - event: manual
+    commands:
+      - printenv
+      - type make
+      - make setup_npm
+
+  - name: go build
+    image: golang:1.25.4-bookworm
+    when:
+      - event: tag
+      - event: push
+      - event: manual
+    commands:
+      - printenv
+      - make setup_go
+      - go env
+      - go get
+      - templ generate
+      - go build
+      - ls -l
+
+  - name: check secret
+    when:
+      - event: push
+      - event: manual
+      - event: tag
+    image: bash
+    environment:
+      GITEA_USER:
+        from_secret: gitea_user
+      GITEA_PASSWORD:
+        from_secret: gitea_password
+    commands:
+      - printenv
+
+  - name: publish artefct to gitea
+    when:
+      - event: tag
+        ref: refs/tags/v*
+    image: woodpeckerci/plugin-kaniko
+    environment:
+      GITEA_USER:
+        from_secret: gitea_user
+      GITEA_PASSWORD:
+        from_secret: gitea_password
+    settings:
+      registry: gitea.localnet
+      repo: /gitea_admin/rosso0815-hetzner
+      tags: ${CI_COMMIT_TAG##v}
+      cache: false
+      skip_tls_verify: true
+      build_args:
+        - COMMIT_SHA=${CI_COMMIT_SHA}
+        - COMMIT_AUTHOR_EMAIL=${CI_COMMIT_AUTHOR_EMAIL}
+      username:
+        from_secret: GITEA_USER
+      password:
+        from_secret: GITEA_PASSWORD
+
+  - name: deploy with ansible
+    when:
+      - event: tag
+        ref: refs/tags/v*
+    image: woodpeckerci/plugin-ansible:latest
+    settings:
+      playbook: playbooks/deploy-goapp.yml
+      inventory: playbooks/inventory/hosts
+      connection: ssh
+      private_key:
+        from_secret: SSH_KEY
+      user: rosso0815
+      ssh-common-args: -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+      verbose: 0
+      extra-vars:
+        my_version: ${CI_COMMIT_TAG##v}
+
+# --- EOF

@@ -1,0 +1,11 @@
+##############
+python-lsp-server[all]
+pylsp-mypy
+yamllint
+bashate
+###############
+ansible-core==2.17.9
+kubernetes
+python-gitlab
+ansible-lint
+#=======================

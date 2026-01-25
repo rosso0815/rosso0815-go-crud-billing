@@ -1,0 +1,30 @@
+package ui
+
+import config "github.com/rosso0815/rosso0815-go-crud-billing/config"
+
+// AuthLogn used for Gitlab / Google Ui Login
+templ authLogin(b *Base, links []Link, cfg *config.Config) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<title>CRUD { b.Title }</title>
+			@Style()
+			<link href={ BootstrapCSS } rel="stylesheet"/>
+			<link rel="stylesheet" href={ cfg.WebPrefix + "/static/bootstrap-icons.css" }/>
+		</head>
+		<body>
+			for _, link := range links {
+				<div class="d-flex justify-content-center">Login with<a href={ link.Href }>{ link.Text } </a></div>
+			}
+			<script src={ cfg.WebPrefix + "/js/bootstrap.bundle.js" }></script>
+			<script src={ cfg.WebPrefix + "/js/htmx.js" }></script>
+			<script src={ cfg.WebPrefix + "/js/json-enc.js" }></script>
+			<script src={ cfg.WebPrefix + "/js/form-json.js" }></script>
+			<script>htmx.logAll();</script>
+		</body>
+	</html>
+}
+
+// --- EOF ---

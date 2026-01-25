@@ -1,0 +1,74 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: goapp
+  labels:
+    app: goapp
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: goapp
+  template:
+    metadata:
+      labels:
+        app: goapp
+        app.kubernetes.io/name: goapp
+    spec:
+      containers:
+        - name: goapp
+          image: '{{ goapp_path }}'
+          env:
+            - name: USER
+              valueFrom:
+                configMapKeyRef:
+                  name: goapp
+                  key: user
+          ports:
+            - containerPort: 8080
+      imagePullSecrets:
+        - name: gitlab-auth
+      imagePullPolicy: Always
+
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: goapp
+# spec:
+#   selector:
+#     app.kubernetes.io/name: goapp
+#   ports:
+#     - protocol: TCP
+#       port: 8080
+#       targetPort: 8080
+
+
+# ---
+# kind: Ingress
+# apiVersion: networking.k8s.io/v1
+# metadata:
+#   name: goapp
+#   namespace: default
+#   annotations:
+#     kubernetes.io/ingress.class: "traefik"
+#     traefik.ingress.kubernetes.io/router.entrypoints: web
+#   # spec:
+#   #   stripPrefix:
+#   #     prefixes:
+#   #       - /goapp
+#   rules:
+#     - http:
+#         paths:
+#           - path: /
+#             pathType: Prefix
+#             backend:
+#               service:
+#                 name: goapp
+#                 port:
+#                   number: 8080
+
+# --- EOF

@@ -1,0 +1,132 @@
+package ui
+
+import (
+	"fmt"
+
+	config "github.com/rosso0815/rosso0815-go-crud-billing/config"
+)
+
+templ navbar(b *Base, cfg *config.Config) {
+	<nav class="navbar navbar-expand-md navbar-light fixed-top bg-light">
+		<div class="container-fluid">
+			<div class="d-flex justify-content-start">
+				<a class="navbar-brand" href={ templ.URL(cfg.WebPrefix) }>CRUD</a>
+				<ul class="navbar-nav me-auto mb-2 mb-md-0">
+					for _,item := range cfg.Menus {
+						<li class="nav-item">
+							<a
+								class="nav-link"
+								href="#"
+								onclick={ templ.JSFuncCall("window.location.replace",
+									fmt.Sprintf("%s/%s",
+										cfg.WebPrefix,
+										item.Path)) }
+							>{ item.Name }</a>
+						</li>
+					}
+				</ul>
+			</div>
+			<div class="d-flex justify-content-center">
+				<form class="d-flex justify-content-center">
+					<input
+						type="text"
+						class="input"
+						placeholder="Search"
+						name="search"
+						value={ b.Search }
+						autofocus
+						hx-get={ b.Path }
+						hx-trigger="keyup changed delay:500ms"
+						hx-target="#content"
+					/>
+				</form>
+			</div>
+			<div class="d-flex justify-content-end">
+				if b.AddAction != nil {
+					@b.AddAction
+				}
+				<ul class="navbar-nav me-auto mb-2 mb-md-0">
+					<li class="nav-item dropdown">
+						<a
+							class="nav-link dropdown-toggle"
+							href="#"
+							role="button"
+							data-bs-toggle="dropdown"
+						>PageSize</a>
+						<ul class="dropdown-menu">
+							<li>
+								<a
+									class="dropdown-item"
+									hx-get={ b.Path }
+									hx-target="#content"
+									hx-vals='{"pagesize": "5"}'
+								>5</a>
+							</li>
+							<li>
+								<a
+									class="dropdown-item"
+									hx-get={ b.Path }
+									hx-target="#content"
+									hx-vals='{"pagesize": "10"}'
+								>10</a>
+							</li>
+							<li>
+								<a
+									class="dropdown-item"
+									hx-get={ b.Path }
+									hx-target="#content"
+									hx-vals='{"pagesize": "20"}'
+								>20</a>
+							</li>
+						</ul>
+					</li>
+				</ul>
+				@Status(b.User)
+			</div>
+		</div>
+	</nav>
+}
+
+// CrudBase is the base template for all CRUD pages
+templ CrudBase(b *Base, cfg *config.Config) {
+	if b.HxRequest {
+		{ children... }
+		<div id="message" hx-swap-oob="true">
+			@CrudMessage(*b, cfg)
+		</div>
+	} else {
+		<!DOCTYPE html>
+		<html lang="en">
+			<head>
+				<meta charset="utf-8"/>
+				<meta name="viewport" content="width=device-width, initial-scale=1"/>
+				<title>CRUD { b.Title }</title>
+				@Style()
+				<link href={ BootstrapCSS } rel="stylesheet"/>
+				<link rel="stylesheet" href={ cfg.WebPrefix + "/css/bootstrap-icons.css" }/>
+				<link rel="stylesheet" href={ cfg.WebPrefix + "/css/crud.css" }/>
+			</head>
+			<body>
+				<div>
+					@navbar(b, cfg)
+				</div>
+				<div class="container-fluid" id="content">
+					<i class="fa fa-car"></i>
+					<i class="fa fa-car" style="font-size:48px;"></i>
+					<i class="fa fa-car" style="font-size:60px;color:red;"></i>
+					{ children... }
+				</div>
+				<div id="message" hx-swap-oob="true">
+					@CrudMessage(*b, cfg)
+				</div>
+				<script src={ cfg.WebPrefix + "/js/bootstrap.bundle.js" }></script>
+				<script src={ cfg.WebPrefix + "/js/htmx.js" }></script>
+				<script src={ cfg.WebPrefix + "/js/json-enc.js" }></script>
+				<script src={ cfg.WebPrefix + "/js/form-json.js" }></script>
+				<script>htmx.logAll();</script>
+			</body>
+		</html>
+	}
+}
+
+// --- EOF ---

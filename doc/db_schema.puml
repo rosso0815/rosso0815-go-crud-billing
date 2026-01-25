@@ -1,0 +1,80 @@
+@startuml
+hide circle
+skinparam linetype ortho
+
+entity "**customer**" {
+  + ""customer_id"": //integer [PK]//
+  --
+  *""created_at"": //timestamp without time zone //
+  ""modified_at"": //timestamp without time zone //
+  *""first_name"": //text //
+  *""last_name"": //text //
+  *""street"": //text //
+  *""town"": //text //
+  *""remark"": //text //
+  *""email"": //text //
+  *""phone"": //text //
+  *""ahv"": //double precision //
+  *""alv"": //double precision //
+  *""quellensteuer"": //double precision //
+  *""salary_hour"": //double precision //
+}
+
+entity "**goose_migrations**" {
+  + ""id"": //integer [PK]//
+  --
+  *""version_id"": //bigint //
+  *""is_applied"": //boolean //
+  *""tstamp"": //timestamp without time zone //
+}
+
+entity "**invoice**" {
+  + ""invoice_id"": //integer [PK]//
+  --
+  *""created_at"": //timestamp without time zone //
+  *""modified_at"": //timestamp without time zone //
+  ""customer_id"": //integer [FK]//
+  *""invoice_month"": //integer //
+  *""invoice_year"": //integer //
+  *""remark"": //text //
+  *""invoice_modified_at"": //timestamp without time zone //
+  *""ahv"": //double precision //
+  *""alv"": //double precision //
+  *""quellensteuer"": //double precision //
+  *""hours_total"": //double precision //
+  *""salary_hour"": //double precision //
+  *""bill_add"": //double precision //
+  *""bill_sum"": //double precision //
+  *""bill_payed"": //boolean //
+  *""bill_payed__at"": //timestamp without time zone //
+}
+
+entity "**invoiceentry**" {
+  + ""invoiceentry_id"": //integer [PK]//
+  --
+  ""invoice_id"": //integer [FK]//
+  *""work_day"": //integer //
+  *""work_hours"": //real //
+}
+
+entity "**sessions**" {
+  + ""token"": //text [PK]//
+  --
+  *""data"": //bytea //
+  *""expiry"": //timestamp with time zone //
+}
+
+entity "**userkv**" {
+  + ""userkv_id"": //integer [PK]//
+  --
+  *""user_id"": //text //
+  *""key"": //text //
+  *""value"": //text //
+  *""created_at"": //timestamp without time zone //
+  *""modified_at"": //timestamp without time zone //
+}
+
+"**invoice**"   }--  "**customer**"
+
+"**invoiceentry**"   }--  "**invoice**"
+@enduml

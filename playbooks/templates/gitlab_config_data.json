@@ -1,0 +1,10 @@
+{
+    "auths": {
+        "registry.gitlab.com":{
+            "username": "{{ git_username }}",
+            "password": "{{ git_token }}",
+            "email": "{{ git_email }}",
+            "auth": "{{ git_auth }}"
+    	}
+    }
+}

@@ -1,0 +1,101 @@
+---
+
+- name: Deploy Go App
+  # hosts: master
+  hosts: localhost
+  # connection: ssh
+  connection: local
+  gather_facts: true
+
+  tasks:
+
+    - name: Hello
+      ansible.builtin.debug:
+        msg:
+          - 'hello from ansible'
+          # - 'make local_{{ target_os }}'
+
+    # - name: local build
+    #   delegate_to: localhost
+    #   ansible.builtin.shell: cd .. && make local_{{ target_os }}
+
+    - name: Hostname
+      ansible.builtin.command: hostname
+      changed_when: false
+      register: out
+    
+    - name: Debug hostname
+      ansible.builtin.debug:
+        var: out
+
+    - name: debug
+      debug:
+        msg:
+          - "GOAPP_PATH: {{ goapp_path }}"
+          - "KUBE_CONFIG: {{ kubeconfig }}"
+          - "APP_NAMESPACE: {{ app_namespace }}"
+          - "GITLAB_USERNAME: {{ git_username }}"
+          - "GITLAB_EMAIL: {{ git_email }}"
+          - "GITLAB_TOKEN: {{ git_token }}"
+          - "GITLAB_AUTH: {{ git_auth }}"
+          - "AUTH: {{ lookup('template', 'templates/gitlab_config_data.json' ) | tojson | b64encode }}"
+
+    # - name: Drop namespace
+    #   kubernetes.core.k8s:
+    #     name: '{{ app_namespace }}'
+    #     api_version: v1
+    #     kind: Namespace
+    #     state: absent
+
+    - name: Create namespace
+      kubernetes.core.k8s:
+        name: '{{ app_namespace }}'
+        api_version: v1
+        kind: Namespace
+        state: present
+
+    - name: create gitlab-secret
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig }}"
+        state: present
+        name: "{{ app_namespace }}"
+        definition:
+          apiVersion: v1
+          kind: Secret
+          type: kubernetes.io/dockerconfigjson
+          metadata:
+            name: gitlab-auth
+            namespace: "{{ app_namespace }}"
+          data:
+            .dockerconfigjson: "{{ lookup('template', 'templates/gitlab_config_data.json' ) | tojson | b64encode }}"
+
+    - name: create config-map
+      kubernetes.core.k8s:
+        state: present
+        namespace: "{{ app_namespace }}"
+        template: templates/config_map.j2.yml
+        kubeconfig: "{{ kubeconfig }}"
+
+    - name: create deployment
+      kubernetes.core.k8s:
+        state: present
+        namespace: '{{ app_namespace }}'
+        template:
+          path: 'templates/deploy_goapp.j2.yml'
+        kubeconfig: '{{ kubeconfig }}'
+    
+    # - name: create service
+    #   kubernetes.core.k8s:
+    #     state: present
+    #     namespace: "{{ namespace }}"
+    #     template: templates/service.j2.yml
+    #     kubeconfig: "{{ kubeconfig }}"
+    #
+    # - name: create ingress
+    #   kubernetes.core.k8s:
+    #     state: present
+    #     namespace: "{{ namespace }}"
+    #     template: templates/deploy_ingress.j2.yml
+    #     kubeconfig: "{{ kubeconfig }}"
+
+# --- EOF

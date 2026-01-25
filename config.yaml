@@ -1,0 +1,21 @@
+---
+
+db_uri: 'pls define'
+
+web_listener: 'localhost:3000'
+
+web_prefix: '/goapp'
+
+auth_google_id: 'pls_define'
+auth_google_secret: 'pls define'
+auth_google_callback: 'pls define'
+
+auth_gitlab_id: 'pls_define'
+auth_gitlab_secret: 'pls define'
+auth_gitlab_callback: 'pls define'
+
+auth_gitea_id: 'pls_define'
+auth_gitea_secret: 'pls define'
+auth_gitea_callback: 'pls define'
+
+# --- EOF

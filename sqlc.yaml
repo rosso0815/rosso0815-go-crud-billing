@@ -1,0 +1,75 @@
+---
+
+version: "2"
+
+plugins:
+
+  - name: debug
+    process:
+      cmd: sqlc-gen-json
+
+sql:
+  - engine: postgresql
+    queries: db/query/
+    schema: db/schema/
+    database:
+      uri: postgres://${PGUSER}@${PGHOST}:5432/${PGNAME}
+    codegen:
+      - out: gen
+        plugin: debug
+        options:
+          indent: "  "
+          filename: codegen.json
+    gen:
+      go:
+        package: "db_gen"
+        out: "db/generated"
+        sql_package: "pgx/v5"
+        emit_methods_with_db_argument: true
+        emit_pointers_for_null_types: true
+        emit_json_tags: true
+        overrides:
+
+          - column: "customer.customer_id"
+            go_type: "int"
+          - column: "customer.created_at"
+            go_type: "time.Time"
+          - column: "customer.modified_at"
+            go_type: "time.Time"
+
+          - column: "invoice.invoice_id"
+            go_type: "int"
+          - column: "invoice.created_at"
+            go_type: "time.Time"
+          - column: "invoice.modified_at"
+            go_type: "time.Time"
+          - column: "invoice.invoice_modified_at"
+            go_type: "time.Time"
+          - column: "invoice.bill_payed_at"
+            go_type: "time.Time"
+          - column: "invoice.customer_id"
+            go_type: "int"
+          - column: "invoice.invoice_month"
+            go_type: "int"
+          - column: "invoice.invoice_year"
+            go_type: "int"
+          - column: "invoice.ahv"
+            go_type: "float64"
+
+          - column: "invoiceentry.invoiceentry_id"
+            go_type: "int"
+          - column: "invoiceentry.created_at"
+            go_type: "time.Time"
+          - column: "invoiceentry.invoice_id"
+            go_type: "int"
+          - column: "invoiceentry.work_day"
+            go_type: "int"
+          - column: "invoiceentry.work_hours"
+            go_type: "float64"
+
+          # - column: "user_kv.id"
+          #   go_type: "int"
+          - column: "userkv.created_at"
+            go_type: "time.Time"
+          - column: "userkv.modified_at"
+            go_type: "time.Time"

@@ -1,0 +1,25 @@
+---
+
+ansible_python_interpreter: /usr/bin/python3.12
+
+target_os: 386
+
+# ansible_user: "{{ lookup( 'env' , 'ANSIBLE_USER' ) }}"
+#
+# ansible_host: "{{ lookup( 'env' , 'ANSIBLE_HOST' ) }}"
+
+kubeconfig: "{{ lookup( 'env' , 'KUBECONFIG' ) }}"
+
+app_namespace: goapp
+
+git_username: "{{ lookup( 'env' , 'GIT_USERNAME' ) }}"
+
+git_email: "{{ lookup( 'env' , 'GIT_EMAIL' ) }}"
+
+git_token: "{{ lookup( 'env' , 'GIT_TOKEN' ) }}"
+
+git_auth: "{{ ( git_username + ':' + git_token ) | b64encode }}"
+
+goapp_path: gitea.localnet/gitea_admin/rosso0815-hetzner:1.0.0-04
+
+# --- EOF

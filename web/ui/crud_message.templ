@@ -1,0 +1,34 @@
+package ui
+
+import config "github.com/rosso0815/rosso0815-go-crud-billing/config"
+
+templ CrudMessage(b Base, cfg *config.Config) {
+	if len(b.MessageText) > 0 {
+		if b.MessageType == Normal {
+			<div class="container-fluid" id="message" hx-swap-oob="true">
+				<div class="alert alert-primary" role="alert">{ b.MessageText }</div>
+			</div>
+		} else {
+			<div class="container-fluid" id="message" hx-swap-oob="true">
+				<div class="alert alert-primary" role="alert">{ b.MessageText }</div>
+			</div>
+		}
+	}
+}
+
+templ CrudMessageOnly(b Base, cfg *config.Config) {
+	@CrudBase(&b, cfg) {
+		@CrudMessage(b, cfg)
+	}
+}
+
+templ CrudMessageAlert(b Base, err string, cfg *config.Config) {
+	b.Base.MessageType =  ui.Alert
+	@CrudBase(&b, cfg) {
+		<div class="container-fluid" id="message" hx-swap-oob="true">
+			<div class="alert alert-primary" role="alert">{ err }</div>
+		</div>
+	}
+}
+
+// --- EOF

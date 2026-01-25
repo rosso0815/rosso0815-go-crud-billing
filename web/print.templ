@@ -1,0 +1,139 @@
+package web
+
+import (
+	"fmt"
+	"time"
+
+	config "github.com/rosso0815/rosso0815-go-crud-billing/config"
+	store "github.com/rosso0815/rosso0815-go-crud-billing/services"
+)
+
+templ print(invoice store.Invoice, cfg *config.Config) {
+	<head>
+		<meta charset="UTF-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+		<meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+		<title>Invoice</title>
+		<link rel="stylesheet" href={ cfg.WebPrefix + "/css/bootstrap.css" }/>
+		<link rel="stylesheet" href={ cfg.WebPrefix + "/css/a4.css" }/>
+	</head>
+	<body>
+		<div class="page container-fluid">
+			<div>
+				<table class="table table-borderless" style="width:100%">
+					<tr>
+						<td class="text-start" colspan="3">
+							Rechnung Nr. { invoice.InvoiceId }
+						</td>
+						<td class="text-end" colspan="2">
+							Datum: { invoice.ModifiedAt.Day() }.{ store.GetMonthGerman(invoice.ModifiedAt.Month()) }.{ invoice.ModifiedAt.Year() }
+						</td>
+					</tr>
+					<tr><td colspan="5"></td></tr>
+					<tr>
+						<td class="text-start" colspan="5">
+							Kanlika Pfister
+							<br/>
+							Hönggerstrasse 11
+							<br/>
+							8102 Oberengstringen
+							<br/>
+							Tel: 079 881 88 38
+							<br/>
+							<strong>AHV</strong> 756.9360.3581.43
+							<br/>
+							<b>UBS Privatkonto CHF:</b> IBAN CH12 0023 0230 1707 7740 H
+						</td>
+					</tr>
+					<tr><td colspan="5"></td></tr>
+					<tr>
+						<td class="text-start" colspan="5">
+							{ invoice.Customer.FirstName } { invoice.Customer.LastName }
+							<br/>
+							{ invoice.Customer.Street }
+							<br/>
+							{ invoice.Customer.Town }
+						</td>
+					</tr>
+					<tr><td colspan="5"></td></tr>
+					<tr><td colspan="3"><b>Lohnabrechnung { store.GetMonthGerman(time.Month(invoice.InvoiceMonth)) } { invoice.InvoiceYear }</b></td></tr>
+					for _, i := range invoice.InvoiceItems {
+						if i.WorkHours > 0 {
+							<tr>
+								<td colspan="1">{ i.Weekday.Format("02.01.2006") }</td>
+								<td colspan="2" class="text-end">{ fmt.Sprintf("%.2f",i.WorkHours) } Stunden</td>
+								<td class="text-end" colspan="2">&nbsp;</td>
+							</tr>
+						}
+					}
+					<tr>
+						<td class="text-start" colspan="1"><b>Gesamt</b></td>
+						<td class="text-end" colspan="2"><b>{ fmt.Sprintf("%.2f",invoice.TotalHours) } Stunden</b></td>
+						<td class="text-end" colspan="2">&nbsp;</td>
+					</tr>
+					<tr><td></td></tr>
+					<tr>
+						<td class="text-start" colspan="2">&nbsp;</td>
+						<td class="text-start" colspan="1">Betrag/Stunde</td>
+						<td class="text-start" colspan="1">Stundenanzahl</td>
+						<td class="text-end" colspan="1">Gesamtbetrag</td>
+					</tr>
+					<tr>
+						<td colspan="1">Bruttolohn</td>
+						<td colspan="1">100 %</td>
+						<td colspan="1">{fmt.Sprintf("%.2f",invoice.SalaryHour)} Sfr</td>
+						<td colspan="1">{fmt.Sprintf("%.2f",invoice.TotalHours)} Stunden</td>
+						<td colspan="1" class="text-end">{fmt.Sprintf("%.2f",invoice.SalaryHour*invoice.TotalHours)} Sfr</td>
+					</tr>
+					<tr><td></td></tr>
+					<tr><td colspan="1">Abzüge</td></tr>
+					<tr>
+						<td colspan="1">Ahv/Iv/Eo</td>
+						<td colspan="1">{fmt.Sprintf("%.2f",invoice.AHV)} %</td>
+						<td colspan="1">{fmt.Sprintf("%.2f",invoice.SalaryHour * invoice.AHV / 100)} Sfr</td>
+						<td colspan="1">{fmt.Sprintf("%.2f",invoice.TotalHours)} Stunden</td>
+						<td colspan="1" class="text-end">{invoice.GetAhvTotal()} Sfr</td>
+					</tr>
+					<tr>
+						<td colspan="1">ALV</td>
+						<td colspan="1">{fmt.Sprintf("%.2f",invoice.ALV)} %</td>
+						<td colspan="1">{fmt.Sprintf("%.2f",invoice.SalaryHour * invoice.ALV / 100)} Sfr</td>
+						<td colspan="1">{fmt.Sprintf("%.2f",invoice.TotalHours)} Stunden</td>
+						<td colspan="1" class="text-end">{invoice.GetAlvTotal()} Sfr</td>
+					</tr>
+					<tr>
+						<td colspan="1">Quellensteuer</td>
+						<td colspan="1">{fmt.Sprintf("%.2f",invoice.Quellensteuer)} %</td>
+						<td colspan="1">{fmt.Sprintf("%.2f",invoice.SalaryHour * invoice.Quellensteuer / 100)} Sfr</td>
+						<td colspan="1">{fmt.Sprintf("%.2f",invoice.TotalHours)} Stunden</td>
+						<td colspan="1" class="text-end">{invoice.GetQuellensteuerTotal()} Sfr</td>
+					</tr>
+					if invoice.BillingAdd > 0 {
+					<tr>
+						<td colspan="3"></td>
+						<td colspan="1">{ invoice.Remark }</td>
+						<td colspan="1" class="text-end">{fmt.Sprintf("%.2f", invoice.BillingAdd)} Sfr</td>
+					</tr>
+					}
+					<tr>
+						<td colspan="3"></td>
+						<td colspan="1"><b>Gesamt</b></td>
+						<td colspan="1" class="text-end"><b>{fmt.Sprintf("%.2f",invoice.BillingSum)} Sfr</b></td>
+					</tr>
+					<tr><td></td></tr>
+					<tr>
+						<td colspan="5">
+							<b>Bemerkungen:</b>
+							<br/>
+							Quellensteurertarif Kanton Zürich vereinfachtes Verfahren
+							<br/>
+							Nich Nicht-Berufsunfallpflichtig, da Anstellung weniger als 8h pro Woche
+							<br/>
+							Nicht BVG pflichtet , da der Jahreslohn unter der BVG - pflichten Eintrittsschwelle liegt
+						</td>
+					</tr>
+				</table>
+			</div>
+		</div>
+	</body>
+}
