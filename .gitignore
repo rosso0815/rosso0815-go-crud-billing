@@ -16,3 +16,4 @@ static/js/json-enc.js
 .venv/
 local/
 rosso0815-go-crud-billing
+dump*sql

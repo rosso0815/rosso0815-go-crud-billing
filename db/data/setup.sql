@@ -8,6 +8,12 @@ CREATE SEQUENCE table_cust_id_seq;
 
 ALTER SEQUENCE table_cust_id_seq RESTART WITH 100001;
 
+ALTER SEQUENCE table_invoice_id_seq RESTART WITH 100110;
+
+ALTER SEQUENCE table_invoiceentry_id_seq RESTART WITH 101420;
+
+
+
 CREATE TABLE customer (
   customer_id  integer NOT NULL DEFAULT nextval('table_cust_id_seq') PRIMARY key,
   created_at timestamp NOT NULL default timezone('utc', now()),

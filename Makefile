@@ -107,9 +107,14 @@ audit: ## Quality Check
 	# @go run golang.org/x/vuln/cmd/govulncheck@latest ./...
 
 sql_dump: ## dump actual database
-	@pg_dump -p $(PGPORT) -h $(PGHOST) -U $(PGUSER) -d $(PGNAME) -a --insert -t customer > customer_$(build-day).sql
-	@pg_dump -p $(PGPORT) -h $(PGHOST) -U $(PGUSER) -d $(PGNAME) -a --insert -t invoice > invoice_$(build-day).sql
-	@pg_dump -p $(PGPORT) -h $(PGHOST) -U $(PGUSER) -d $(PGNAME) -a --insert -t invoiceentry > invoiceentry_$(build-day).sql
+	# 	FIXME add sequeces
+	# 	https://dba.stackexchange.com/questions/294212/export-postgres-sequences-only
+	#	pg_dump -h localhost -p 5432 -d namedb -U postgres -t '*_id_seq' > dump-seq.sql
+	#
+	@pg_dump -p $(PGPORT) -h $(PGHOST) -U $(PGUSER) -d $(PGNAME) -a --insert -t customer > dump_$(build-day).sql
+	@pg_dump -p $(PGPORT) -h $(PGHOST) -U $(PGUSER) -d $(PGNAME) -a --insert -t invoice >> dump_$(build-day).sql
+	@pg_dump -p $(PGPORT) -h $(PGHOST) -U $(PGUSER) -d $(PGNAME) -a --insert -t invoiceentry >> dump_$(build-day).sql
+	@pg_dump -p $(PGPORT) -h $(PGHOST) -U $(PGUSER) -d $(PGNAME) -a --insert -t '*_seq' >> dump_$(build-day).sql
 	@ls -ltr
 
 sql: ## run sql
