@@ -1,0 +1,33 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+# sample golang https://github.com/go-task/examples/blob/main/go-web-app/Taskfile.yml
+
+version: '3'
+
+vars:
+  GREETING: Hello, world!
+
+tasks:
+  default:
+    desc: Print a greeting message
+    cmds:
+      - echo "{{.GREETING}}"
+    silent: true
+
+  clean:
+    desc: Clean every generated file
+    cmds:
+      - go clean --cache --testcache
+      - rm -rf static/fonts
+      - rm -rf static/css/bootstrap*.css
+      - rm -f static/js/*.js
+
+  setup_npm:
+    desc: Setup NPM env
+    cmd: |
+      mkdir static || true
+      mkdir static/js || true
+      mkdir static/css || true
+      mkdir static/css/fonts || true
+
+

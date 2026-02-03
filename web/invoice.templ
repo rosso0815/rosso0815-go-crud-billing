@@ -29,6 +29,7 @@ templ invoiceCrudLine(invoice store.Invoice, cfg *config.Config) {
 		<td class="col-1">{ invoice.InvoiceYear }</td>
 		<td class="col-1">{ invoice.InvoiceMonth }</td>
 		<td class="col-1">{ invoice.TotalHours }</td>
+		<td class="col-1">{ invoice.BillingSum }</td>
 		<td class="col-1">{ fmt.Sprintf("%d",invoice.Customer.CustomerID ) }</td>
 		<td class="col-1">{ invoice.Customer.FirstName }</td>
 		<td class="col-1">{ invoice.Customer.LastName }</td>
