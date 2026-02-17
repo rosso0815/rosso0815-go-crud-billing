@@ -32,19 +32,24 @@ jobs:
         run: go env
 
       - name: GoInstall
-        run: go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+        run: |
+          go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+          go install github.com/a-h/templ/cmd/templ@latest
 
       # - name: Setup
       #   run: make setup
       #
-      - name: Run sqlc
-        run: sqlc generate
+      - name: Run Templ
+        run: templ generate
+
+      # - name: Run sqlc
+      #   run: sqlc generate
       #
       # - name: Run templ
       #   run: templ generate
       #
-      # - name: Build
-      #   run: go build -v ./...
+      - name: Build
+        run: go build -v ./...
       #
       # - name: Test
       #   run: go test -v ./...
