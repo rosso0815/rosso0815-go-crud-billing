@@ -13,7 +13,7 @@ sql:
     queries: db/query/
     schema: db/schema/
     database:
-      uri: postgres://${PGUSER}@${PGHOST}:5432/${PGNAME}
+      uri: postgres://${PGUSER}@/${PGNAME}
     # codegen:
     #   - out: gen
     #     plugin: debug

@@ -9,10 +9,10 @@ services:
     ports:
       - "3000:3000"
     env_file:
-      - ./.env-secret
+      - ./.env-linux
 
-networks:
-  db:
-    driver: bridge
+# networks:
+#   db:
+#     driver: bridge
 
 # --- EOF
