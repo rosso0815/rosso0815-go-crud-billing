@@ -31,6 +31,9 @@ jobs:
       - name: GoInfo
         run: go env
 
+      - name: GoInstall
+        run: go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+
       # - name: Setup
       #   run: make setup
       #
