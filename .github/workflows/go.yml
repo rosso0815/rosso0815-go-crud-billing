@@ -31,16 +31,16 @@ jobs:
       - name: GoInfo
         run: go env
 
-      - name: GoInstall
-        run: |
-          go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
-          go install github.com/a-h/templ/cmd/templ@latest
+      # - name: GoInstall
+      #   run: |
+      #     go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+      #     go install github.com/a-h/templ/cmd/templ@latest
 
       # - name: Setup
       #   run: make setup
       #
-      - name: Run Templ
-        run: templ generate
+      # - name: Run Templ
+      #   run: templ generate
 
       # - name: Run sqlc
       #   run: sqlc generate
