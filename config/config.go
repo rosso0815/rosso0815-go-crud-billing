@@ -75,10 +75,10 @@ func New(e *embed.FS) *Config {
 
 	checkStringNotEmpty(cfg.DbUri, "DB_URI")
 	checkStringNotEmpty(cfg.WebListener, "WEB_LISTENER")
-	checkStringNotEmpty(cfg.AuthGoogleID, "AUTH_GOOGLE_ID")
-	checkStringNotEmpty(cfg.AuthGoogleSecret, "AuthGoogleSecret")
-	checkStringNotEmpty(cfg.AuthGitlabID, "AUTH_GITLAB_ID")
-	checkStringNotEmpty(cfg.AuthGitlabSecret, "AuthGitlabSecret")
+	// checkStringNotEmpty(cfg.AuthGoogleID, "AUTH_GOOGLE_ID")
+	// checkStringNotEmpty(cfg.AuthGoogleSecret, "AuthGoogleSecret")
+	// checkStringNotEmpty(cfg.AuthGitlabID, "AUTH_GITLAB_ID")
+	// checkStringNotEmpty(cfg.AuthGitlabSecret, "AuthGitlabSecret")
 	return cfg
 }
 

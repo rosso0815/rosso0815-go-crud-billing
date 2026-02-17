@@ -11,6 +11,8 @@ CREATE TABLE customer (
   created_at timestamp NOT NULL default timezone('utc', now()),
   modified_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now(),
 
+  ---
+
   first_name text not null,
   last_name text not null,
   street text not null default '',

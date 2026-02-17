@@ -2,11 +2,11 @@
 
 version: "2"
 
-plugins:
-
-  - name: debug
-    process:
-      cmd: sqlc-gen-json
+# plugins:
+#
+#   - name: debug
+#     process:
+#       cmd: sqlc-gen-json
 
 sql:
   - engine: postgresql
@@ -14,12 +14,12 @@ sql:
     schema: db/schema/
     database:
       uri: postgres://${PGUSER}@${PGHOST}:5432/${PGNAME}
-    codegen:
-      - out: gen
-        plugin: debug
-        options:
-          indent: "  "
-          filename: codegen.json
+    # codegen:
+    #   - out: gen
+    #     plugin: debug
+    #     options:
+    #       indent: "  "
+    #       filename: codegen.json
     gen:
       go:
         package: "db_gen"
