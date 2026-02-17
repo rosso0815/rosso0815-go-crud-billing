@@ -25,11 +25,15 @@ jobs:
         with:
           go-version: '1.25'
 
-      - name: Info
-        run: printenv
+      - name: build
+        run: |
+          printenv
+          go env
+          go build -v
+          ls -l
 
-      - name: GoInfo
-        run: go env
+      # - name: GoInfo
+      #   run: go env
 
       # - name: GoInstall
       #   run: |
@@ -48,8 +52,8 @@ jobs:
       # - name: Run templ
       #   run: templ generate
       #
-      - name: Build
-        run: go build -v ./...
+      # - name: Build
+      #   run: go build -v ./...
       #
       # - name: Test
       #   run: go test -v ./...
