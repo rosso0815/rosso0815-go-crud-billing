@@ -1,5 +1,7 @@
 ---
 
+# https://gitea.com/xorm/reverse/src/branch/main/.gitea/workflows/test.yml
+
 name: checks
 on:
   - push
