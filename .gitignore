@@ -17,3 +17,4 @@ bin/
 local/
 rosso0815-go-crud-billing
 dump*sql
+hetzner_httpd_*

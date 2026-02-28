@@ -8,6 +8,8 @@ version: '3'
 
 vars:
   GREETING: Hello, world!
+  BOOTSTRAP_VERSION: 'v5.3.8'
+  HTMX_VERSION: '2.0.8'
 
 tasks:
   default:
@@ -23,13 +25,53 @@ tasks:
       - rm -rf static/fonts
       - rm -rf static/css/bootstrap*.css
       - rm -f static/js/*.js
+  setup_go:
+    cmd: |
+      echo "@@@ setup go"
+      go install github.com/pressly/goose/v3/cmd/goose@latest
+      go install github.com/air-verse/air@latest
+      go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
+      go install github.com/a-h/templ/cmd/templ@latest
+      go install golang.org/x/tools/gopls@latest
 
   setup_npm:
     desc: Setup NPM env
+    deps: [clean]
     cmd: |
+      echo @@@ setup_npm
+      echo BOOTSTRAP_VERSION {{.BOOTSTRAP_VERSION}}
       mkdir static || true
       mkdir static/js || true
       mkdir static/css || true
       mkdir static/css/fonts || true
+      cd static
+      npm install bootstrap@{{.BOOTSTRAP_VERSION}}
+      cp node_modules/bootstrap/dist/js/bootstrap.bundle.js js
+      cp node_modules/bootstrap/dist/css/bootstrap.css css
+      npm install htmx.org@{{.HTMX_VERSION}}
+      cp node_modules/htmx.org/dist/htmx.js js
+      cp node_modules/htmx.org/dist/ext/json-enc.js js
+      npm i htmx-ext-form-json
+      cp node_modules/htmx-ext-form-json/form-json.js js
+      npm i bootstrap-icons@1.11.3
+      cp node_modules/bootstrap-icons/font/bootstrap-icons.css css
+      mkdir fonts || true
+      cp node_modules/bootstrap-icons/font/fonts/bootstrap-icons.woff2 css/fonts/
+      cp node_modules/bootstrap-icons/font/fonts/bootstrap-icons.woff css/fonts/
+      cd ..
+      rm -rf static/node_modules
+      rm -f static/package*
+      echo @@@ done
+
+  build:
+    cmd: |
+      echo @@@ build
+      rm -f hetzner_http*
+      sqlc generate
+      templ generate
+      CGO_ENABLED=0 GOOS=linux GOARCH=amd64  go build -o hetzner_httpd_linux_x86
+      CGO_ENABLED=0 GOOS=linux GOARCH=arm64  go build -o hetzner_httpd_linux_arm
+      CGO_ENABLED=0 GOOS=darwin GOARCH=arm64  go build -o hetzner_httpd_darwin_arm
+      ls -l hetzner_http*
 
 # --- EOF
