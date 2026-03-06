@@ -9,7 +9,7 @@ app-name := rosso-go-hetzner
 app-buildnr := $(shell date +%s)
 build-day   := $(shell date +%Y-%m-%d)
 go-bin := $(shell go env GOBIN)
-pg_user := ${PGUSER}
+# pg_user := ${PGUSER}
 # PGPORT := ${PGPORT}
 
 help:           ## Show this help.
@@ -21,9 +21,8 @@ info: ## show the acual values
 	@echo app-name: $(app-name)
 	@echo go-bin: $(go-bin)
 	@echo app-buildnr: $(app-buildnr)
-	@echo pg_user: $(pg_user)
-	@echo PGHOST: ${PGHOST}
-	@echo PGPORT: ${PGPORT}
+	@echo PGUSER: ${PGUSER}
+	@echo PGNAME: ${PGNAME}
 	@echo NO_COLOR: ${NO_COLOR}
 	@echo BOOTSTRAP_VERSION: ${BOOTSTRAP_VERSION}
 	@echo HTMX_VERSION: ${HTMX_VERSION}
@@ -106,15 +105,11 @@ audit: ## Quality Check
 	@go run honnef.co/go/tools/cmd/staticcheck@latest -checks=all,-ST1000,-U1000 ./...
 	# @go run golang.org/x/vuln/cmd/govulncheck@latest ./...
 
-sql_dump: ## dump actual database
-	# 	FIXME add sequeces
-	# 	https://dba.stackexchange.com/questions/294212/export-postgres-sequences-only
-	#	pg_dump -h localhost -p 5432 -d namedb -U postgres -t '*_id_seq' > dump-seq.sql
-	#
-	@pg_dump -p $(PGPORT) -h $(PGHOST) -U $(PGUSER) -d $(PGNAME) -a --insert -t customer > dump_$(build-day).sql
-	@pg_dump -p $(PGPORT) -h $(PGHOST) -U $(PGUSER) -d $(PGNAME) -a --insert -t invoice >> dump_$(build-day).sql
-	@pg_dump -p $(PGPORT) -h $(PGHOST) -U $(PGUSER) -d $(PGNAME) -a --insert -t invoiceentry >> dump_$(build-day).sql
-	@pg_dump -p $(PGPORT) -h $(PGHOST) -U $(PGUSER) -d $(PGNAME) -a --insert -t '*_seq' >> dump_$(build-day).sql
+sql_dump: info ## dump actual database
+	@pg_dump -U ${PGUSER} -d ${PGNAME} -a --insert -t customer > dump_$(build-day).sql
+	@pg_dump -U ${PGUSER} -d ${PGNAME} -a --insert -t invoice >> dump_$(build-day).sql
+	@pg_dump -U ${PGUSER} -d ${PGNAME} -a --insert -t invoiceentry >> dump_$(build-day).sql
+	@pg_dump -U ${PGUSER} -d ${PGNAME} -a --insert -t '*_seq' >> dump_$(build-day).sql
 	@ls -ltr
 
 sql: ## run sql
