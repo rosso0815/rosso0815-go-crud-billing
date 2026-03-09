@@ -1,9 +1,6 @@
 package db
 
 import (
-	"context"
-	"log"
-
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/rosso0815/rosso0815-go-crud-billing/config"
@@ -16,11 +13,7 @@ type Db struct {
 	Cfg     *config.Config
 }
 
-func NewDb(ctx context.Context, cfg *config.Config) *Db {
-	pool, err := pgxpool.New(ctx, cfg.DbUri)
-	if err != nil {
-		log.Fatalln("cannot connect", err)
-	}
+func NewDb(pool *pgxpool.Pool, cfg *config.Config) *Db {
 	pgxStore := Db{}
 	pgxStore.Db = pool
 	pgxStore.Cfg = cfg

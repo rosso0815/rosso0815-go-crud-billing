@@ -274,6 +274,44 @@ func (q *Queries) InvoiceentryInsert(ctx context.Context, db DBTX, arg Invoiceen
 	return db.Exec(ctx, invoiceentryInsert, arg.InvoiceID, arg.WorkDay, arg.WorkHours)
 }
 
+const invoiceentryListByInvoiceId = `-- name: InvoiceentryListByInvoiceId :many
+select
+    invoiceentry_id,
+    invoice_id,
+    work_day,
+    work_hours
+from
+    invoiceentry
+where
+    invoice_id = $1
+ORDER BY work_day
+`
+
+func (q *Queries) InvoiceentryListByInvoiceId(ctx context.Context, db DBTX, invoiceID int) ([]Invoiceentry, error) {
+	rows, err := db.Query(ctx, invoiceentryListByInvoiceId, invoiceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Invoiceentry
+	for rows.Next() {
+		var i Invoiceentry
+		if err := rows.Scan(
+			&i.InvoiceentryID,
+			&i.InvoiceID,
+			&i.WorkDay,
+			&i.WorkHours,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const invoiceentryUpdate = `-- name: InvoiceentryUpdate :execresult
 UPDATE invoiceEntry
 SET
@@ -335,6 +373,72 @@ func (q *Queries) InvoicesList(ctx context.Context, db DBTX, arg InvoicesListPar
 			return nil, err
 		}
 		items = append(items, invoice_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const invoicesListFull = `-- name: InvoicesListFull :many
+select
+    i.invoice_id, i.created_at, i.modified_at, i.customer_id, i.invoice_month, i.invoice_year, i.remark, i.invoice_modified_at, i.ahv, i.alv, i.quellensteuer, i.hours_total, i.salary_hour, i.bill_add, i.bill_sum, i.bill_payed, i.bill_payed_at
+from
+    invoice i, customer c
+where
+    i.customer_id = c.customer_id
+and
+    (
+        c.customer_id::text like '%' || $1::text || '%'
+    or
+        c.first_name ilike '%' || $1::text || '%'
+    or
+        c.last_name ilike '%' || $1::text || '%'
+    )
+ORDER BY i.invoice_id DESC
+LIMIT
+    $3
+OFFSET
+    $2
+`
+
+type InvoicesListFullParams struct {
+	Search    string `json:"search"`
+	PageCount int64  `json:"page_count"`
+	PageSize  int64  `json:"page_size"`
+}
+
+func (q *Queries) InvoicesListFull(ctx context.Context, db DBTX, arg InvoicesListFullParams) ([]Invoice, error) {
+	rows, err := db.Query(ctx, invoicesListFull, arg.Search, arg.PageCount, arg.PageSize)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Invoice
+	for rows.Next() {
+		var i Invoice
+		if err := rows.Scan(
+			&i.InvoiceID,
+			&i.CreatedAt,
+			&i.ModifiedAt,
+			&i.CustomerID,
+			&i.InvoiceMonth,
+			&i.InvoiceYear,
+			&i.Remark,
+			&i.InvoiceModifiedAt,
+			&i.Ahv,
+			&i.Alv,
+			&i.Quellensteuer,
+			&i.HoursTotal,
+			&i.SalaryHour,
+			&i.BillAdd,
+			&i.BillSum,
+			&i.BillPayed,
+			&i.BillPayedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

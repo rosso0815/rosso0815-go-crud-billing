@@ -1,7 +1,6 @@
 package services
 
 import (
-	"fmt"
 	"log"
 	"time"
 
@@ -23,17 +22,18 @@ func NewScheduler() {
 		gocron.NewTask(
 			func(a string, b int) {
 				// do things
-				fmt.Println("scheduler", a, b)
+				log.Println("scheduler", a, b)
 			},
 			"hello",
 			1,
 		),
 	)
 	if err != nil {
-		// handle error
+		log.Println("scheduler job error:", err)
+		return
 	}
 	// each job has a unique id
-	fmt.Println(j.ID())
+	log.Println(j.ID())
 
 	// start the scheduler
 	s.Start()

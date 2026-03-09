@@ -39,8 +39,13 @@ func (b *Base) Update(w http.ResponseWriter, r *http.Request) {
 		b.SessionManager.Put(r.Context(), "pagesize", 5)
 		b.PageSize = 5
 	} else if len(pagesize_q) > 0 {
-		b.PageSize, _ = strconv.Atoi(pagesize_q)
-		b.SessionManager.Put(r.Context(), "pagesize", b.PageSize)
+		ps, err := strconv.Atoi(pagesize_q)
+		if err == nil {
+			b.PageSize = ps
+			b.SessionManager.Put(r.Context(), "pagesize", b.PageSize)
+		} else {
+			b.PageSize = 5
+		}
 	} else if pagesize_s > 0 {
 		b.PageSize = pagesize_s
 	}
@@ -48,7 +53,10 @@ func (b *Base) Update(w http.ResponseWriter, r *http.Request) {
 	b.PageCount = 0
 	pagecount_s := r.URL.Query().Get("pagecount")
 	if len(pagecount_s) > 0 {
-		b.PageCount, _ = strconv.Atoi(pagecount_s)
+		pc, err := strconv.Atoi(pagecount_s)
+		if err == nil {
+			b.PageCount = pc
+		}
 	}
 
 	b.User = b.SessionManager.GetString(r.Context(), "userid")

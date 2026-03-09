@@ -1,8 +1,11 @@
 -- name: CustomersList :many
 SELECT customer_id FROM customer;
 
+-- name: CustomersListFull :many
+SELECT * FROM customer;
+
 -- name: CustomersListBySearch :many
-SELECT customer_id FROM customer
+SELECT * FROM customer
 		where
 			first_name ilike '%' || @search::text || '%'
 		or

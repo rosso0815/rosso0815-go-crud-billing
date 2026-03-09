@@ -161,7 +161,7 @@ func (q *Queries) CustomersList(ctx context.Context, db DBTX) ([]int, error) {
 }
 
 const customersListBySearch = `-- name: CustomersListBySearch :many
-SELECT customer_id FROM customer
+SELECT customer_id, created_at, modified_at, first_name, last_name, street, town, remark, email, phone, ahv, alv, quellensteuer, salary_hour FROM customer
 		where
 			first_name ilike '%' || $1::text || '%'
 		or
@@ -185,19 +185,34 @@ type CustomersListBySearchParams struct {
 	PageSize  int64  `json:"page_size"`
 }
 
-func (q *Queries) CustomersListBySearch(ctx context.Context, db DBTX, arg CustomersListBySearchParams) ([]int, error) {
+func (q *Queries) CustomersListBySearch(ctx context.Context, db DBTX, arg CustomersListBySearchParams) ([]Customer, error) {
 	rows, err := db.Query(ctx, customersListBySearch, arg.Search, arg.PageCount, arg.PageSize)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []int
+	var items []Customer
 	for rows.Next() {
-		var customer_id int
-		if err := rows.Scan(&customer_id); err != nil {
+		var i Customer
+		if err := rows.Scan(
+			&i.CustomerID,
+			&i.CreatedAt,
+			&i.ModifiedAt,
+			&i.FirstName,
+			&i.LastName,
+			&i.Street,
+			&i.Town,
+			&i.Remark,
+			&i.Email,
+			&i.Phone,
+			&i.Ahv,
+			&i.Alv,
+			&i.Quellensteuer,
+			&i.SalaryHour,
+		); err != nil {
 			return nil, err
 		}
-		items = append(items, customer_id)
+		items = append(items, i)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -218,4 +233,43 @@ func (q *Queries) CustomersListCount(ctx context.Context, db DBTX, search string
 	var count int64
 	err := row.Scan(&count)
 	return count, err
+}
+
+const customersListFull = `-- name: CustomersListFull :many
+SELECT customer_id, created_at, modified_at, first_name, last_name, street, town, remark, email, phone, ahv, alv, quellensteuer, salary_hour FROM customer
+`
+
+func (q *Queries) CustomersListFull(ctx context.Context, db DBTX) ([]Customer, error) {
+	rows, err := db.Query(ctx, customersListFull)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Customer
+	for rows.Next() {
+		var i Customer
+		if err := rows.Scan(
+			&i.CustomerID,
+			&i.CreatedAt,
+			&i.ModifiedAt,
+			&i.FirstName,
+			&i.LastName,
+			&i.Street,
+			&i.Town,
+			&i.Remark,
+			&i.Email,
+			&i.Phone,
+			&i.Ahv,
+			&i.Alv,
+			&i.Quellensteuer,
+			&i.SalaryHour,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

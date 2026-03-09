@@ -13,7 +13,7 @@ import (
 	config "github.com/rosso0815/rosso0815-go-crud-billing/config"
 )
 
-func Db_migration_up(embedMigrations *embed.FS, cfg *config.Config) {
+func DbMigrationUp(embedMigrations *embed.FS, cfg *config.Config) {
 	log.Println("--> db_migration_up")
 	db, err := sql.Open("pgx", cfg.DbUri)
 	if err != nil {
@@ -29,7 +29,7 @@ func Db_migration_up(embedMigrations *embed.FS, cfg *config.Config) {
 		os.Exit(1)
 	}
 
-	fmt.Println(greeting)
+	log.Println(greeting)
 
 	goose.SetBaseFS(embedMigrations)
 
@@ -42,7 +42,7 @@ func Db_migration_up(embedMigrations *embed.FS, cfg *config.Config) {
 	}
 }
 
-func Db_migration_down(embedMigrations *embed.FS, cfg *config.Config) {
+func DbMigrationDown(embedMigrations *embed.FS, cfg *config.Config) {
 	log.Println("--> db_migration_down")
 	db, err := sql.Open("pgx", cfg.DbUri)
 	if err != nil {
@@ -58,7 +58,7 @@ func Db_migration_down(embedMigrations *embed.FS, cfg *config.Config) {
 		os.Exit(1)
 	}
 
-	fmt.Println(greeting)
+	log.Println(greeting)
 
 	goose.SetBaseFS(embedMigrations)
 

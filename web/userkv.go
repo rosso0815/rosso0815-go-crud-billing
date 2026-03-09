@@ -15,7 +15,7 @@ import (
 	ui "github.com/rosso0815/rosso0815-go-crud-billing/web/ui"
 )
 
-func NewUserkv(store *store.Store, sessionManager *scs.SessionManager, cfg *config.Config) *Web {
+func NewUserkv(store *store.Store, sessionManager *scs.SessionManager, cfg *config.Config, r *router.Router) *Web {
 	b := Web{}
 	b.store = store
 	b.Path = "userkv"
@@ -23,7 +23,7 @@ func NewUserkv(store *store.Store, sessionManager *scs.SessionManager, cfg *conf
 	b.cfg = cfg
 	b.AddAction = ui.CrudActionAdd("tbd")
 	cfg.Menus = append(cfg.Menus, config.Menu{Name: "Key Values", Path: fmt.Sprintf("ui/%s", b.Path)})
-	router.RegisterRoute(fmt.Sprintf("GET %s/ui/%s", b.cfg.WebPrefix, b.Path), b.ListAll)
+	r.RegisterRoute(fmt.Sprintf("GET %s/ui/%s", b.cfg.WebPrefix, b.Path), b.ListAll)
 	return &b
 }
 
@@ -36,13 +36,17 @@ func (m *Web) ListAll(w http.ResponseWriter, r *http.Request) {
 		ui.CrudHeaderSort("Key", m.cfg),
 		ui.CrudHeaderSort("Value", m.cfg)}
 	if m.User == "" {
+		w.WriteHeader(http.StatusUnauthorized)
 		m.Base.MessageType = ui.Alert
 		m.Base.MessageText = "not logged in"
-		ui.CrudMessageOnly(m.Base, m.cfg).Render(r.Context(), w)
+		if err := ui.CrudMessageOnly(m.Base, m.cfg).Render(r.Context(), w); err != nil {
+			log.Println("render error:", err)
+		}
 		return
 	}
 	items, err := m.store.UserkvList(r.Context(), m.User)
 	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		log.Println("err", err.Error())
 		return
 	}
@@ -51,12 +55,14 @@ func (m *Web) ListAll(w http.ResponseWriter, r *http.Request) {
 		l := userkvCrudLine(item, m.cfg)
 		components = append(components, l)
 	}
-	ui.CrudTable(
+	if err := ui.CrudTable(
 		ui.CrudList{
 			Base:   m.Base,
 			Header: header,
 			Items:  components,
 			Count:  count,
-		}, m.cfg).Render(r.Context(), w)
+		}, m.cfg).Render(r.Context(), w); err != nil {
+		log.Println("render error:", err)
+	}
 
 }

@@ -19,6 +19,27 @@ LIMIT
 OFFSET
     @page_count;
 
+-- name: InvoicesListFull :many
+select
+    i.*
+from
+    invoice i, customer c
+where
+    i.customer_id = c.customer_id
+and
+    (
+        c.customer_id::text like '%' || @search::text || '%'
+    or
+        c.first_name ilike '%' || @search::text || '%'
+    or
+        c.last_name ilike '%' || @search::text || '%'
+    )
+ORDER BY i.invoice_id DESC
+LIMIT
+    @page_size
+OFFSET
+    @page_count;
+
 -- name: InvoiceGetById :one
 select
   *
@@ -51,6 +72,18 @@ where
     invoice_id = @invoice_id
 AND
     work_day = @work_day;
+
+-- name: InvoiceentryListByInvoiceId :many
+select
+    invoiceentry_id,
+    invoice_id,
+    work_day,
+    work_hours
+from
+    invoiceentry
+where
+    invoice_id = @invoice_id
+ORDER BY work_day;
 
 -- name: InvoiceInsert :one
 INSERT INTO invoice

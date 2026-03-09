@@ -92,7 +92,7 @@ func (i *Invoice) GetTotalHours() string {
 
 func (m *Store) InvoiceListBySearch(ctx context.Context, search string, page_size int, page_count int) ([]Invoice, error) {
 	var invoices []Invoice
-	ids, err := m.Db.Queries.InvoicesList(ctx, m.Db.Db, db_gen.InvoicesListParams{
+	invoiceRows, err := m.Db.Queries.InvoicesListFull(ctx, m.Db.Db, db_gen.InvoicesListFullParams{
 		Search:    search,
 		PageCount: int64(page_count),
 		PageSize:  int64(page_size),
@@ -101,14 +101,9 @@ func (m *Store) InvoiceListBySearch(ctx context.Context, search string, page_siz
 		log.Println("Error invoice search", err)
 		return nil, err
 	}
-	for _, i := range ids {
-		invoice, err := m.Db.Queries.InvoiceGetById(ctx, m.Db.Db, i)
-		if err != nil {
-			log.Println("Error invoice search", err)
-			return invoices, err
-		}
-		s_invoice := toStoreInvoice(invoice)
-		customer, err := m.Db.Queries.CustomerGetById(ctx, m.Db.Db, invoice.CustomerID)
+	for _, row := range invoiceRows {
+		s_invoice := toStoreInvoice(row)
+		customer, err := m.Db.Queries.CustomerGetById(ctx, m.Db.Db, row.CustomerID)
 		if err != nil {
 			log.Println("Error invoice search", err)
 			return invoices, err
@@ -132,19 +127,18 @@ func (m *Store) InvoiceGetById(ctx context.Context, invoiceId int) (Invoice, err
 		return invoice, err
 	}
 	invoice.Customer = toStoreCustomer(customer)
-	for i := range time.Date(invoice.InvoiceYear, time.Month(invoice.InvoiceMonth)+1, 0, 0, 0, 0, 0, time.UTC).Day() {
-		ie, err := m.Db.Queries.InvoiceentryGetByInvoiceidAndDay(ctx, m.Db.Db, db_gen.InvoiceentryGetByInvoiceidAndDayParams{
-			InvoiceID: db_invoice.InvoiceID,
-			WorkDay:   i + 1})
-		if err != nil && err.Error() != pgx.ErrNoRows.Error() {
-			log.Println("Error invoice search", err)
-			return invoice, err
-		}
+	
+	entries, err := m.Db.Queries.InvoiceentryListByInvoiceId(ctx, m.Db.Db, db_invoice.InvoiceID)
+	if err != nil && err.Error() != pgx.ErrNoRows.Error() {
+		log.Println("Error fetching invoice entries", err)
+		return invoice, err
+	}
+	for _, ie := range entries {
 		s_invoiceentry := InvoiceItem{
-			WorkDayNumber: i + 1,
+			WorkDayNumber: ie.WorkDay,
 			WorkHours:     ie.WorkHours,
 			Weekday: time.Date(invoice.InvoiceYear,
-				time.Month(invoice.InvoiceMonth), i+1, 20, 34, 58, 651387237, time.UTC),
+				time.Month(invoice.InvoiceMonth), int(ie.WorkDay), 20, 34, 58, 651387237, time.UTC),
 		}
 		invoice.InvoiceItems = append(invoice.InvoiceItems, s_invoiceentry)
 	}
@@ -173,20 +167,17 @@ func (m *Store) InvoiceGetByCustomerAndMonth(ctx context.Context, customerId int
 		InvoiceYear:  invoice_year,
 	})
 	if err != nil && err.Error() != pgx.ErrNoRows.Error() {
-		log.Fatal("InvoiceGet failed:", err)
-		return Invoice{}, err
+		return Invoice{}, fmt.Errorf("InvoiceGet failed: %w", err)
 	}
 	db_customer, err := m.Db.Queries.CustomerGetById(ctx, m.Db.Db, customerId)
 	if err != nil && err.Error() != pgx.ErrNoRows.Error() {
-		log.Fatal("InvoiceGet failed:", err)
-		return Invoice{}, err
+		return Invoice{}, fmt.Errorf("InvoiceGet failed: %w", err)
 	}
 
 	if db_invoice.InvoiceID != 0 {
 		db_invoice, err = m.Db.Queries.InvoiceGetById(ctx, m.Db.Db, db_invoice.InvoiceID)
 		if err != nil {
-			log.Fatal("InvoiceGet failed:", err)
-			return Invoice{}, err
+			return Invoice{}, fmt.Errorf("InvoiceGet failed: %w", err)
 		}
 		invoice = toStoreInvoice(db_invoice)
 	} else {

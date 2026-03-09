@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rosso0815/rosso0815-go-crud-billing/config"
 	"github.com/rosso0815/rosso0815-go-crud-billing/db"
 	db_gen "github.com/rosso0815/rosso0815-go-crud-billing/db/generated"
@@ -29,10 +30,16 @@ func newCustomerTestStore(t *testing.T) *Store {
 	t.Setenv("WEB_LISTENER", ":0")
 
 	ctx := context.Background()
-	store := NewStore(ctx, config.New(nil))
+	cfg, err := config.New(nil)
+	assert.NilError(t, err)
+	
+	pool, err := pgxpool.New(ctx, cfg.DbUri)
+	assert.NilError(t, err)
+	
+	store := NewStore(pool, cfg)
 	t.Cleanup(store.Close)
 
-	_, err := store.Db.Db.Exec(ctx, "delete from invoiceentry; delete from invoice; delete from customer;")
+	_, err = store.Db.Db.Exec(ctx, "delete from invoiceentry; delete from invoice; delete from customer;")
 	assert.NilError(t, err)
 
 	err = db.LoadSQLFile(store.Db.Db, "../db/data/001_customer.sql")

@@ -18,7 +18,7 @@ import (
 )
 
 // New
-func NewCustomer(store *services.Store, sessionManager *scs.SessionManager, cfg *config.Config) *Web {
+func NewCustomer(store *services.Store, sessionManager *scs.SessionManager, cfg *config.Config, r *router.Router) *Web {
 	b := Web{}
 	b.store = store
 	b.Path = "customer"
@@ -26,12 +26,12 @@ func NewCustomer(store *services.Store, sessionManager *scs.SessionManager, cfg 
 	b.cfg = cfg
 	b.AddAction = ui.CrudActionAdd(fmt.Sprintf("%s/ui/%s/form_add", b.cfg.WebPrefix, b.Path))
 	cfg.Menus = append(cfg.Menus, config.Menu{Name: "Customer", Path: fmt.Sprintf("ui/%s", b.Path)})
-	router.RegisterRoute(fmt.Sprintf("GET %s/ui/%s", b.cfg.WebPrefix, b.Path), b.customerListAll)
-	router.RegisterRoute(fmt.Sprintf("GET %s/ui/%s/edit/{id}", b.cfg.WebPrefix, b.Path), b.customer_FormEdit)
-	router.RegisterRoute(fmt.Sprintf("PUT %s/ui/%s/{id}", b.cfg.WebPrefix, b.Path), b.customer_Edit)
-	router.RegisterRoute(fmt.Sprintf("GET %s/ui/%s/form_add", b.cfg.WebPrefix, b.Path), b.customerFormAdd)
-	router.RegisterRoute(fmt.Sprintf("POST %s/ui/%s", b.cfg.WebPrefix, b.Path), b.customerAdd)
-	router.RegisterRoute(fmt.Sprintf("DELETE %s/ui/%s/{id}", b.cfg.WebPrefix, b.Path), b.customerDelete)
+	r.RegisterRoute(fmt.Sprintf("GET %s/ui/%s", b.cfg.WebPrefix, b.Path), b.customerListAll)
+	r.RegisterRoute(fmt.Sprintf("GET %s/ui/%s/edit/{id}", b.cfg.WebPrefix, b.Path), b.customer_FormEdit)
+	r.RegisterRoute(fmt.Sprintf("PUT %s/ui/%s/{id}", b.cfg.WebPrefix, b.Path), b.customer_Edit)
+	r.RegisterRoute(fmt.Sprintf("GET %s/ui/%s/form_add", b.cfg.WebPrefix, b.Path), b.customerFormAdd)
+	r.RegisterRoute(fmt.Sprintf("POST %s/ui/%s", b.cfg.WebPrefix, b.Path), b.customerAdd)
+	r.RegisterRoute(fmt.Sprintf("DELETE %s/ui/%s/{id}", b.cfg.WebPrefix, b.Path), b.customerDelete)
 	return &b
 }
 
@@ -47,20 +47,30 @@ func (b *Web) customerListAll(w http.ResponseWriter, r *http.Request) {
 		ui.CrudHeaderSort("Remark", b.cfg),
 		ui.CrudHeaderSort("Action", b.cfg),
 	}
-	rCount, _ := b.store.CustomerListBySearchCount(r.Context(), b.Search)
-	items, _ := b.store.CustomerListBySearch(r.Context(), b.Search, b.PageSize, b.PageCount)
+	rCount, err := b.store.CustomerListBySearchCount(r.Context(), b.Search)
+	if err != nil {
+		log.Println("ERROR getting customer count:", err)
+		rCount = 0
+	}
+	items, err := b.store.CustomerListBySearch(r.Context(), b.Search, b.PageSize, b.PageCount)
+	if err != nil {
+		log.Println("ERROR getting customers:", err)
+		items = []services.Customer{}
+	}
 	var components []templ.Component
 	for _, item := range items {
 		l := customerLine(item, b.cfg)
 		components = append(components, l)
 	}
-	ui.CrudTable(
+	if err := ui.CrudTable(
 		ui.CrudList{
 			Base:   b.Base,
 			Header: header,
 			Items:  components,
 			Count:  rCount,
-		}, b.cfg).Render(r.Context(), w)
+		}, b.cfg).Render(r.Context(), w); err != nil {
+		log.Println("render error:", err)
+	}
 }
 
 func (b Web) customerDelete(w http.ResponseWriter, r *http.Request) {
@@ -68,17 +78,25 @@ func (b Web) customerDelete(w http.ResponseWriter, r *http.Request) {
 	idParam, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		log.Println("ERROR", err)
-		ui.CrudMessageAlert(b.Base, err.Error(), b.cfg).Render(r.Context(), w)
+		w.WriteHeader(http.StatusBadRequest)
+		if err := ui.CrudMessageAlert(b.Base, err.Error(), b.cfg).Render(r.Context(), w); err != nil {
+			log.Println("render error:", err)
+		}
 		return
 	}
 	err = b.store.CustomerDelete(r.Context(), idParam)
 	if err != nil {
 		log.Println("ERROR", err)
-		ui.CrudMessageAlert(b.Base, err.Error(), b.cfg).Render(r.Context(), w)
+		w.WriteHeader(http.StatusInternalServerError)
+		if err := ui.CrudMessageAlert(b.Base, err.Error(), b.cfg).Render(r.Context(), w); err != nil {
+			log.Println("render error:", err)
+		}
 		return
 	}
 	b.Base.MessageText = fmt.Sprintf("delete done of Customer-Id %d", idParam)
-	ui.CrudMessageOnly(b.Base, b.cfg).Render(r.Context(), w)
+	if err := ui.CrudMessageOnly(b.Base, b.cfg).Render(r.Context(), w); err != nil {
+		log.Println("render error:", err)
+	}
 }
 
 func (b Web) customer_FormEdit(w http.ResponseWriter, r *http.Request) {
@@ -86,10 +104,21 @@ func (b Web) customer_FormEdit(w http.ResponseWriter, r *http.Request) {
 	idParam, err := strconv.Atoi(idString)
 	if err != nil {
 		log.Println("ERROR", err)
+		w.WriteHeader(http.StatusBadRequest)
 	}
 	b.Base.Update(w, r)
-	customer, _ := b.store.CustomerGetById(r.Context(), idParam)
-	customer_Form(b.Base, ui.Edit, "edit", customer, b.cfg).Render(r.Context(), w)
+	customer, err := b.store.CustomerGetById(r.Context(), idParam)
+	if err != nil {
+		log.Println("ERROR", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		if err := ui.CrudMessageAlert(b.Base, err.Error(), b.cfg).Render(r.Context(), w); err != nil {
+			log.Println("render error:", err)
+		}
+		return
+	}
+	if err := customer_Form(b.Base, ui.Edit, "edit", customer, b.cfg).Render(r.Context(), w); err != nil {
+		log.Println("render error:", err)
+	}
 }
 
 func (b Web) customer_Edit(w http.ResponseWriter, r *http.Request) {
@@ -98,18 +127,24 @@ func (b Web) customer_Edit(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(&c)
 	if err != nil {
 		log.Println("ERROR decoding JSON:", err.Error())
+		w.WriteHeader(http.StatusBadRequest)
 		b.MessageText = err.Error()
 		b.Base.MessageType = ui.Alert
 		b.Base.MessageText = err.Error()
-		ui.CrudMessageOnly(b.Base, b.cfg).Render(r.Context(), w)
+		if err := ui.CrudMessageOnly(b.Base, b.cfg).Render(r.Context(), w); err != nil {
+			log.Println("render error:", err)
+		}
 		return
 	}
 	err = b.store.CustomerUpdate(r.Context(), c)
 	if err != nil {
 		log.Println(err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
 		b.Base.MessageType = ui.Alert
 		b.Base.MessageText = err.Error()
-		ui.CrudMessageOnly(b.Base, b.cfg).Render(r.Context(), w)
+		if err := ui.CrudMessageOnly(b.Base, b.cfg).Render(r.Context(), w); err != nil {
+			log.Println("render error:", err)
+		}
 		return
 	}
 	b.Base.Update(w, r)
@@ -119,7 +154,9 @@ func (b Web) customer_Edit(w http.ResponseWriter, r *http.Request) {
 
 func (b Web) customerFormAdd(w http.ResponseWriter, r *http.Request) {
 	b.Base.Update(w, r)
-	customer_Form(b.Base, ui.Add, "add", services.Customer{}, b.cfg).Render(r.Context(), w)
+	if err := customer_Form(b.Base, ui.Add, "add", services.Customer{}, b.cfg).Render(r.Context(), w); err != nil {
+		log.Println("render error:", err)
+	}
 }
 
 // Add Customer
@@ -131,17 +168,23 @@ func (b Web) customerAdd(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(&c)
 	if err != nil {
 		log.Println("ERROR", err)
+		w.WriteHeader(http.StatusBadRequest)
 		b.Base.MessageType = ui.Alert
 		b.Base.MessageText = err.Error()
-		ui.CrudMessageOnly(b.Base, b.cfg).Render(r.Context(), w)
+		if err := ui.CrudMessageOnly(b.Base, b.cfg).Render(r.Context(), w); err != nil {
+			log.Println("render error:", err)
+		}
 		return
 	}
 	_, err = b.store.CustomerCreate(r.Context(), c)
 	if err != nil {
 		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
 		b.Base.MessageType = ui.Alert
 		b.Base.MessageText = err.Error()
-		ui.CrudMessageOnly(b.Base, b.cfg).Render(r.Context(), w)
+		if err := ui.CrudMessageOnly(b.Base, b.cfg).Render(r.Context(), w); err != nil {
+			log.Println("render error:", err)
+		}
 		return
 	}
 	b.Base.Update(w, r)

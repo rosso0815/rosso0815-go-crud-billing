@@ -1,7 +1,7 @@
 package services
 
 import (
-	"context"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/rosso0815/rosso0815-go-crud-billing/config"
 	"github.com/rosso0815/rosso0815-go-crud-billing/db"
@@ -13,9 +13,9 @@ type Store struct {
 }
 
 // func NewStore(db *pgxpool.Pool, queries *db_gen.Queries, cfg *config.Config) *PgxStore {
-func NewStore(ctx context.Context, cfg *config.Config) *Store {
+func NewStore(pool *pgxpool.Pool, cfg *config.Config) *Store {
 	pgxStore := Store{}
-	pgxStore.Db = db.NewDb(ctx, cfg)
+	pgxStore.Db = db.NewDb(pool, cfg)
 	pgxStore.Cfg = cfg
 	return &pgxStore
 }

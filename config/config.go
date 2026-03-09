@@ -3,7 +3,6 @@ package config
 import (
 	"embed"
 	"fmt"
-	"log"
 	"os"
 )
 
@@ -22,6 +21,8 @@ type Config struct {
 	PageSize      int    // `mapstructure:"page_size"`
 	PageCount     int    // `mapstructure:"page_count"`
 	SessionSecret string // `mapstructure:"session_secret"`
+	SessionName   string // `mapstructure:"session_name"`
+	SessionHours  int    // `mapstructure:"session_hours"`
 
 	AuthEnabled string // `mapstructure:"auth_google_id"`
 
@@ -37,55 +38,64 @@ type Config struct {
 	Menus []Menu
 }
 
-func New(e *embed.FS) *Config {
+func New(e *embed.FS) (*Config, error) {
 	cfg := &Config{}
 	cfg.embedFs = e
-	cfg.PageSize = 10
-	cfg.PageCount = 0
+
+	// Load from environment with defaults
+	pageSize := 10
+	if ps := os.Getenv("PAGE_SIZE"); ps != "" {
+		fmt.Sscanf(ps, "%d", &pageSize)
+	}
+	cfg.PageSize = pageSize
+
+	pageCount := 0
+	if pc := os.Getenv("PAGE_COUNT"); pc != "" {
+		fmt.Sscanf(pc, "%d", &pageCount)
+	}
+	cfg.PageCount = pageCount
+
+	sessionName := "session"
+	if sn := os.Getenv("SESSION_NAME"); sn != "" {
+		sessionName = sn
+	}
+	cfg.SessionName = sessionName
+
+	sessionHours := 24
+	if sh := os.Getenv("SESSION_HOURS"); sh != "" {
+		fmt.Sscanf(sh, "%d", &sessionHours)
+	}
+	cfg.SessionHours = sessionHours
 
 	cfg.DbUri = os.Getenv("DB_URI")
-	fmt.Println("DB_URI: ", cfg.DbUri)
-
 	cfg.WebPrefix = os.Getenv("WEB_PREFIX")
-	fmt.Println("WEB_PREFIX: ", cfg.WebPrefix)
-
 	cfg.WebListener = os.Getenv("WEB_LISTENER")
-	fmt.Println("WEB_LISTENER: ", cfg.WebListener)
-
 	cfg.AuthEnabled = os.Getenv("AUTH_ENABLED")
-	fmt.Println("AUTH_ENABLED: ", cfg.AuthEnabled)
-
 	cfg.AuthGoogleID = os.Getenv("AUTH_GOOGLE_ID")
-	fmt.Println("AUTH_GOOGLE_ID: ", cfg.AuthGoogleID)
-
 	cfg.AuthGoogleSecret = os.Getenv("AUTH_GOOGLE_SECRET")
-	fmt.Println("AUTH_GOOGLE_SECRET: ", cfg.AuthGoogleSecret)
-
 	cfg.AuthGitlabID = os.Getenv("AUTH_GITLAB_ID")
-	fmt.Println("AUTH_GITLAB_ID: ", cfg.AuthGitlabID)
-
 	cfg.AuthGitlabSecret = os.Getenv("AUTH_GITLAB_SECRET")
-	fmt.Println("AUTH_GITLAB_SECRET: ", cfg.AuthGitlabSecret)
-
 	cfg.AuthGiteaID = os.Getenv("AUTH_GITEA_ID")
-	fmt.Println("AUTH_GITEA_ID: ", cfg.AuthGiteaID)
-
 	cfg.AuthGiteaSecret = os.Getenv("AUTH_GITEA_SECRET")
-	fmt.Println("AUTH_GITEA_SECRET: ", cfg.AuthGiteaSecret)
 
-	checkStringNotEmpty(cfg.DbUri, "DB_URI")
-	checkStringNotEmpty(cfg.WebListener, "WEB_LISTENER")
+	if err := checkStringNotEmpty(cfg.DbUri, "DB_URI"); err != nil {
+		return nil, err
+	}
+	if err := checkStringNotEmpty(cfg.WebListener, "WEB_LISTENER"); err != nil {
+		return nil, err
+	}
 	// checkStringNotEmpty(cfg.AuthGoogleID, "AUTH_GOOGLE_ID")
 	// checkStringNotEmpty(cfg.AuthGoogleSecret, "AuthGoogleSecret")
 	// checkStringNotEmpty(cfg.AuthGitlabID, "AUTH_GITLAB_ID")
 	// checkStringNotEmpty(cfg.AuthGitlabSecret, "AuthGitlabSecret")
-	return cfg
+	return cfg, nil
 }
 
-func checkStringNotEmpty(s string, text string) {
+func checkStringNotEmpty(s string, text string) error {
 	if len(s) < 1 {
-		log.Panicln(text)
+		return fmt.Errorf("required config not set: %s", text)
 	}
+	return nil
 }
 
 // --- EOF

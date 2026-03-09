@@ -5,6 +5,7 @@ import (
 	"log"
 	"testing"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rosso0815/rosso0815-go-crud-billing/config"
 	"github.com/rosso0815/rosso0815-go-crud-billing/db"
 )
@@ -13,12 +14,25 @@ func Test_PgxInvoiceSave(t *testing.T) {
 
 	t.Log("@@@ Test_InvoiceList")
 	log.Println("start")
-	cfg := config.New(nil)
+	cfg, err := config.New(nil)
+	if err != nil {
+		t.Fatalf("failed to load config: %v", err)
+	}
 	ctx := context.Background()
-	store := NewStore(ctx, cfg)
-	db.LoadSQLFile(store.Db.Db, "../db/data/001_customer.sql")
-	db.LoadSQLFile(store.Db.Db, "../db/data/002_invoice.sql")
-	db.LoadSQLFile(store.Db.Db, "../db/data/003_userkv.sql")
+	pool, err := pgxpool.New(ctx, cfg.DbUri)
+	if err != nil {
+		t.Fatalf("failed to create pool: %v", err)
+	}
+	store := NewStore(pool, cfg)
+	if err := db.LoadSQLFile(store.Db.Db, "../db/data/001_customer.sql"); err != nil {
+		t.Fatalf("failed to load fixture 001_customer.sql: %v", err)
+	}
+	if err := db.LoadSQLFile(store.Db.Db, "../db/data/002_invoice.sql"); err != nil {
+		t.Fatalf("failed to load fixture 002_invoice.sql: %v", err)
+	}
+	if err := db.LoadSQLFile(store.Db.Db, "../db/data/003_userkv.sql"); err != nil {
+		t.Fatalf("failed to load fixture 003_userkv.sql: %v", err)
+	}
 
 	// 	sql := `
 	// -- start

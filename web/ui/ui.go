@@ -62,11 +62,11 @@ type Ui struct {
 	cfg *config.Config
 }
 
-func New(sessionManager *scs.SessionManager, cfg *config.Config) *Ui {
+func New(sessionManager *scs.SessionManager, cfg *config.Config, r *router.Router) *Ui {
 	u := Ui{}
 	u.SessionManager = sessionManager
 	u.cfg = cfg
-	router.RegisterRoute("GET "+u.cfg.WebPrefix+"/auth/login", u.AuthLogin)
+	r.RegisterRoute("GET "+u.cfg.WebPrefix+"/auth/login", u.AuthLogin)
 	return &u
 }
 

@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"time"
 
@@ -44,16 +45,12 @@ func toStoreCustomer(d db_gen.Customer) Customer {
 }
 
 func (m *Store) CustomerList(ctx context.Context) ([]Customer, error) {
-	i, err := m.Db.Queries.CustomersList(ctx, m.Db.Db)
+	i, err := m.Db.Queries.CustomersListFull(ctx, m.Db.Db)
 	if err != nil {
 		return nil, err
 	}
 	var customers []Customer
-	for _, id := range i {
-		customer, err := m.Db.Queries.CustomerGetById(ctx, m.Db.Db, id)
-		if err != nil {
-			return nil, err
-		}
+	for _, customer := range i {
 		customers = append(customers, toStoreCustomer(customer))
 	}
 	return customers, nil
@@ -69,11 +66,7 @@ func (m *Store) CustomerListBySearch(ctx context.Context, search string, page_si
 		return nil, err
 	}
 	var customers []Customer
-	for _, id := range i {
-		customer, err := m.Db.Queries.CustomerGetById(ctx, m.Db.Db, id)
-		if err != nil {
-			return nil, err
-		}
+	for _, customer := range i {
 		customers = append(customers, toStoreCustomer(customer))
 	}
 	return customers, nil
@@ -82,8 +75,7 @@ func (m *Store) CustomerListBySearch(ctx context.Context, search string, page_si
 func (m *Store) CustomerListBySearchCount(ctx context.Context, search string) (int, error) {
 	count, err := m.Db.Queries.CustomersListCount(ctx, m.Db.Db, search)
 	if err != nil {
-		log.Fatal(err)
-		return 0, err
+		return 0, fmt.Errorf("failed to count customers: %w", err)
 	}
 	return int(count), nil
 }
