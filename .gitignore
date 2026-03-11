@@ -18,3 +18,4 @@ local/
 rosso0815-go-crud-billing
 dump*sql
 hetzner_httpd_*
+*.pem

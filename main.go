@@ -31,9 +31,6 @@ import (
 //go:embed static/css/fonts/*woff2
 var embedStatic embed.FS
 
-//go:embed config.yaml
-var embedConfig embed.FS
-
 //go:embed db/schema/*.sql
 var embedMigrations embed.FS
 
@@ -65,9 +62,13 @@ func web_run(cfg *config.Config) error {
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
-	if err := srv.ListenAndServe(); err != nil {
+	// err = srv.ListenAndServe()
+	fmt.Print("TLS_CHAIN", cfg.TlsChain)
+	err = srv.ListenAndServeTLS("fullchain1.pem", "privkey1.pem")
+	if err != nil {
 		return fmt.Errorf("server failed: %w", err)
 	}
+
 	return nil
 }
 
@@ -81,7 +82,7 @@ func main() {
 		os.Exit(1)
 	}()
 
-	cfg, err := config.New(&embedConfig)
+	cfg, err := config.New()
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
 	}

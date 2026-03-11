@@ -35,12 +35,14 @@ type Config struct {
 	AuthGiteaID     string // `mapstructure:"auth_gitea_id"`
 	AuthGiteaSecret string // `mapstructure:"auth_gitea_secret"`
 
+	TlsPrivateKey string // `mapstructure:"tls_privkey"`
+	TlsChain      string // `mapstructure:"tls_chain"`
+
 	Menus []Menu
 }
 
-func New(e *embed.FS) (*Config, error) {
+func New() (*Config, error) {
 	cfg := &Config{}
-	cfg.embedFs = e
 
 	// Load from environment with defaults
 	pageSize := 10
@@ -77,6 +79,8 @@ func New(e *embed.FS) (*Config, error) {
 	cfg.AuthGitlabSecret = os.Getenv("AUTH_GITLAB_SECRET")
 	cfg.AuthGiteaID = os.Getenv("AUTH_GITEA_ID")
 	cfg.AuthGiteaSecret = os.Getenv("AUTH_GITEA_SECRET")
+	cfg.TlsChain = os.Getenv("TLS_CHAIN")
+	cfg.TlsPrivateKey = os.Getenv("TLS_PRIVKEY")
 
 	if err := checkStringNotEmpty(cfg.DbUri, "DB_URI"); err != nil {
 		return nil, err
