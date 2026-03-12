@@ -64,7 +64,8 @@ func web_run(cfg *config.Config) error {
 	}
 	// err = srv.ListenAndServe()
 	fmt.Print("TLS_CHAIN", cfg.TlsChain)
-	err = srv.ListenAndServeTLS("fullchain1.pem", "privkey1.pem")
+	fmt.Print("TLS_PRIVKEY", cfg.TlsPrivateKey)
+	err = srv.ListenAndServeTLS(cfg.TlsChain, cfg.TlsPrivateKey)
 	if err != nil {
 		return fmt.Errorf("server failed: %w", err)
 	}

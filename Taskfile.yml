@@ -74,4 +74,10 @@ tasks:
       CGO_ENABLED=0 GOOS=darwin GOARCH=arm64  go build -o hetzner_httpd_darwin_arm
       ls -l hetzner_http*
 
+  deploy:
+    deps: [build]
+    cmd: |
+      echo @@@ deploy
+      ansible-playbook -i playbooks/inventory/hosts playbooks/deploy-goapp.yml
+
 # --- EOF

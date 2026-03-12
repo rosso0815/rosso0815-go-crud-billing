@@ -1,0 +1,18 @@
+
+[Unit]
+Description=goapp service
+After=network.target
+
+[Service]
+EnvironmentFile=-/etc/sysconfig/goapp
+WorkingDirectory=/tmp
+Type=forking
+# LimitNOFILE=65536
+ExecStart=/usr/local/bin/goapp
+# ExecStop=/opt/nexus/bin/nexus stop
+User=goapp
+Restart=on-abort
+TimeoutStopSec=10s
+
+[Install]
+WantedBy=multi-user.target

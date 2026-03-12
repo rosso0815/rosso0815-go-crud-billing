@@ -1,0 +1,25 @@
+# goapp
+
+TLS_CHAIN="/etc/letsencrypt/archive/rosso0815.dev/fullchain1.pem"
+
+TLS_PRIVKEY="/etc/letsencrypt/archive/rosso0815.dev/privkey1.pem"
+
+PGDATABASE='goapp'
+
+PGUSER='goapp'
+
+DB_URI="postgresql://goapp@/goapp?client_encoding=UTF8"
+
+WEB_PREFIX="/goapp"
+
+WEB_LISTENER="0.0.0.0:8443"
+
+AUTH_ENABLED="false"
+
+GOOSE_DRIVER=postgres
+
+GOOSE_DBSTRING=postgres://goapp/goapp
+
+GOOSE_MIGRATION_DIR=./db/schema
+
+GOOSE_TABLE=goose_migrations
