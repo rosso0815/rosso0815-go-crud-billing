@@ -1,8 +1,8 @@
 # goapp
 
-TLS_CHAIN="/etc/letsencrypt/archive/rosso0815.dev/fullchain1.pem"
-
-TLS_PRIVKEY="/etc/letsencrypt/archive/rosso0815.dev/privkey1.pem"
+# TLS_CHAIN="/etc/letsencrypt/archive/rosso0815.dev/fullchain1.pem"
+#
+# TLS_PRIVKEY="/etc/letsencrypt/archive/rosso0815.dev/privkey1.pem"
 
 PGDATABASE='goapp'
 
@@ -12,7 +12,7 @@ DB_URI="postgresql://goapp@/goapp?client_encoding=UTF8"
 
 WEB_PREFIX="/goapp"
 
-WEB_LISTENER="0.0.0.0:8443"
+WEB_LISTENER="localhost:3000"
 
 AUTH_ENABLED="false"
 

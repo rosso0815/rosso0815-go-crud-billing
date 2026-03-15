@@ -55,7 +55,6 @@ func web_run(cfg *config.Config) error {
 	web.NewCustomer(store, r.GetSessionManager(), cfg, r)
 	web.NewInvoice(store, r.GetSessionManager(), cfg, r)
 	r.SetupRoutes()
-	log.Printf("running on http://%s%s\n", cfg.WebListener, cfg.WebPrefix)
 	srv := &http.Server{
 		Handler:      r.GetMux(),
 		Addr:         cfg.WebListener,
@@ -63,9 +62,16 @@ func web_run(cfg *config.Config) error {
 		ReadTimeout:  15 * time.Second,
 	}
 	// err = srv.ListenAndServe()
-	fmt.Print("TLS_CHAIN", cfg.TlsChain)
-	fmt.Print("TLS_PRIVKEY", cfg.TlsPrivateKey)
-	err = srv.ListenAndServeTLS(cfg.TlsChain, cfg.TlsPrivateKey)
+	if len(cfg.TlsChain) > 1 {
+		fmt.Print("TLS_CHAIN", cfg.TlsChain)
+		fmt.Print("TLS_PRIVKEY", cfg.TlsPrivateKey)
+		log.Printf("running on https://%s%s\n", cfg.WebListener, cfg.WebPrefix)
+		err = srv.ListenAndServeTLS(cfg.TlsChain, cfg.TlsPrivateKey)
+	} else {
+
+		log.Printf("running on http://%s%s\n", cfg.WebListener, cfg.WebPrefix)
+		err = srv.ListenAndServe()
+	}
 	if err != nil {
 		return fmt.Errorf("server failed: %w", err)
 	}

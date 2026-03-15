@@ -6,7 +6,7 @@ After=network.target
 [Service]
 EnvironmentFile=-/etc/sysconfig/goapp
 WorkingDirectory=/tmp
-Type=forking
+Type=simple
 # LimitNOFILE=65536
 ExecStart=/usr/local/bin/goapp
 # ExecStop=/opt/nexus/bin/nexus stop

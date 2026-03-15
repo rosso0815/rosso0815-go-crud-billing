@@ -78,6 +78,6 @@ tasks:
     deps: [build]
     cmd: |
       echo @@@ deploy
-      ansible-playbook -i playbooks/inventory/hosts playbooks/deploy-goapp.yml
+      ansible-playbook -v -i playbooks/inventory/hosts playbooks/deploy-goapp.yml
 
 # --- EOF
